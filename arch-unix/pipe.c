@@ -2,6 +2,8 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
+#include <strings.h>
 
 #include <bathos/bathos.h>
 #include <bathos/errno.h>
