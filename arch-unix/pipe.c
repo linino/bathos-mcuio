@@ -163,3 +163,20 @@ struct bathos_pipe *unix_fd_to_pipe(int fd)
 	}
 	return NULL;
 }
+
+#ifdef CONFIG_PIPE_ASYNC_INTERFACE
+/*
+ * bathos_dev_get_bqueue implementation for arch-unix
+ */
+struct bathos_bqueue *bathos_dev_get_bqueue(struct bathos_pipe *pipe)
+{
+	struct bathos_dev *d = pipe->dev;
+	struct arch_unix_pipe_data *adata;
+	if (!d)
+		return NULL;
+	adata = d->priv;
+	if (!adata)
+		return NULL;
+	return &adata->bqueue;
+}
+#endif /* CONFIG_PIPE_ASYNC_INTERFACE */

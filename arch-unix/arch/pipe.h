@@ -1,11 +1,16 @@
 #ifndef __ARCH_UNIX_PIPE_H__
 #define __ARCH_UNIX_PIPE_H__
 
+#include <bathos/buffer_queue_server.h>
+
 struct bathos_pipe;
 
 struct arch_unix_pipe_data {
 	int fd;
 	struct bathos_pipe *pipe;
+#ifdef CONFIG_PIPE_ASYNC_INTERFACE
+	struct bathos_bqueue bqueue;
+#endif
 };
 
 extern struct bathos_pipe *unix_fd_to_pipe(int fd);
