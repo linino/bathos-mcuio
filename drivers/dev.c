@@ -56,7 +56,8 @@ __get_ops(struct bathos_dev_data *data, struct bathos_ll_dev_ops *ops)
 #endif
 
 #ifdef CONFIG_PIPE_ASYNC_INTERFACE
-struct bathos_bqueue *bathos_dev_get_bqueue(struct bathos_pipe *pipe)
+struct bathos_bqueue * __attribute__((weak))
+    bathos_dev_get_bqueue(struct bathos_pipe *pipe)
 {
 	struct bathos_dev_data *data = pipe->dev->priv;
 
