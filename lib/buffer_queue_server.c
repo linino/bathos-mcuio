@@ -40,7 +40,7 @@ int bathos_bqueue_server_init(struct bathos_bqueue *q,
 	for (i = 0, op = op_area, data_ptr = area; i < nbufs;
 	     i++, op++, data_ptr += bufsize) {
 		op->type = NONE;
-		op->type = addr_type;
+		op->addr.type = addr_type;
 		op->operand.data = data_ptr;
 		op->operand.queue = q;
 		memset(op->addr.val, 0xff, sizeof(op->addr.val));
