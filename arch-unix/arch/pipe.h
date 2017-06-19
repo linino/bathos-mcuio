@@ -10,6 +10,9 @@ struct arch_unix_pipe_data {
 	struct bathos_pipe *pipe;
 #ifdef CONFIG_PIPE_ASYNC_INTERFACE
 	struct bathos_bqueue bqueue;
+	void *buffer_area;
+	struct list_head rx_queue;
+	struct list_head tx_queue;
 #endif
 };
 
