@@ -69,6 +69,20 @@ config RELOCATE_VECTORS_TABLE
 	 if unsure.
        default n
 
+config BATHOS_NORDERS_LOG
+       int "Logarithm of allocator's number of orders"
+       help
+	This sets the logatithm of the allocator's number of orders (see
+	lib/allocator.c for more information on the allocator)
+       default 3
+
+config BATHOS_ALLOCATOR_MEM_SIZE
+       int "Size of memory managed by the allocator"
+       help
+        This sets the amount of memory managed by the bathos allocator
+       default 65536 if ARCH_UNIX
+       default 1024
+
 choice
 	prompt "Memory mode"
 

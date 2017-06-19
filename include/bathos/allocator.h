@@ -7,11 +7,17 @@
 #ifndef __BATHOS_ALLOC_H__
 #define __BATHOS_ALLOC_H__
 
-#define BATHOS_NORDERS_LOG	3
+#ifndef CONFIG_BATHOS_NORDERS_LOG
+#define CONFIG_BATHOS_NORDERS_LOG 3
+#endif
+#define BATHOS_NORDERS_LOG	CONFIG_BATHOS_NORDERS_LOG
 #define BATHOS_NORDERS		(1 << BATHOS_NORDERS_LOG)
 #define BATHOS_MAX_ORDER	((BATHOS_NORDERS) - 1)
 /* How many bytes are managed by the allocator */
-#define BATHOS_ALLOCATOR_MEMORY 1024
+#ifndef CONFIG_BATHOS_ALLOCATOR_MEM_SIZE
+#define CONFIG_BATHOS_ALLOCATOR_MEM_SIZE 1024
+#endif
+#define BATHOS_ALLOCATOR_MEMORY CONFIG_BATHOS_ALLOCATOR_MEM_SIZE
 
 /* Returns number of buffers for order o */
 #define BATHOS_NBUFS(o) (1 << ((BATHOS_NORDERS - (o)) - 1))
