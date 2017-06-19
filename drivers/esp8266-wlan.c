@@ -225,7 +225,7 @@ static int esp8266_wlan_async_open(void *_priv)
 					priv->buffer_area,
 					plat->nbufs,
 					plat->bufsize,
-					NONE);
+					REMOTE_MAC);
 	if (ret)
 		return ret;
 
