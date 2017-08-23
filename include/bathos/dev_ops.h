@@ -107,6 +107,14 @@ int bathos_dev_write(struct bathos_pipe *pipe, const char *buf, int len);
 int bathos_dev_close(struct bathos_pipe *pipe);
 int bathos_dev_ioctl(struct bathos_pipe *pipe, struct bathos_ioctl_data *data);
 
+#ifndef CONFIG_HAVE_ARCH_FIND_DEV
+static inline struct bathos_dev *bathos_arch_find_dev(struct bathos_pipe *p)
+{
+	return NULL;
+}
+#else
+extern struct bathos_dev *bathos_find_dev(struct bathos_pipe *);
+#endif
 		
 #endif /* __BATHOS_DEV_OPS_H__ */
 

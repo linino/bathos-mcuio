@@ -48,13 +48,13 @@ static struct bathos_pipe *__find_free_pipe(void)
 	return bathos_alloc_buffer(sizeof(struct bathos_pipe));
 }
 
-struct bathos_dev * __attribute__((weak)) bathos_find_dev(struct bathos_pipe *p)
+struct bathos_dev *bathos_find_dev(struct bathos_pipe *p)
 {
 	struct bathos_dev *d;
 	for (d = bathos_devices_start; d < bathos_devices_end; d++)
 		if (!strcmp(p->n, d->name))
 			return d;
-	return NULL;
+	return bathos_arch_find_dev(p);
 }
 
 void __pipe_dev_trigger_event(struct bathos_dev *dev, const struct event *evt,

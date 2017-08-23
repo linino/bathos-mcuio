@@ -304,7 +304,7 @@ static struct bathos_dev_ops unix_dev_ops = {
  * bathos_find_dev implementation for arch-unix
  */
 
-struct bathos_dev *bathos_find_dev(struct bathos_pipe *p)
+struct bathos_dev *bathos_arch_find_dev(struct bathos_pipe *p)
 {
 	struct bathos_dev *out;
 	struct arch_unix_pipe_data *adata;

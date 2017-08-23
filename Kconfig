@@ -25,6 +25,7 @@ config ARCH_XTENSA
 config ARCH_UNIX
 	bool "Unix -- run in a process"
 	select HAVE_UART
+	select HAVE_ARCH_FIND_DEV
 	help
 	  Build
 
@@ -161,6 +162,9 @@ config HAVE_USB_UART
        bool
 
 config HAVE_SPI
+       bool
+
+config HAVE_ARCH_FIND_DEV
        bool
 
 choice
