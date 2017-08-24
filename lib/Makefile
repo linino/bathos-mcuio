@@ -17,6 +17,7 @@ LIB_OBJS += lib/allocator.o
 LIB_OBJS += lib/allocator-tables.o
 LIB_OBJS += lib/shell.o
 LIB_OBJS += lib/irq.o
+LIB_OBJS += lib/cmdline.o
 
 $(LIBBATHOS): $(LIB_OBJS)
 	$(AR) r $@ $(LIB_OBJS)

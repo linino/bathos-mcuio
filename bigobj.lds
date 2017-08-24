@@ -28,6 +28,11 @@ SECTIONS
 		__task_begin = .;
 		*(.task);
 		__task_end = .;
+		. = ALIGN(32);
+		cmdline_items_start = .;
+		*(.cmdline_items);
+		cmdline_items_end = .;
+		. = ALIGN(32);
 	}
 	.text : {
 		. = ALIGN(2);
