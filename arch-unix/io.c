@@ -4,6 +4,7 @@
  */
 #include <stdint.h>
 #include <bathos/bathos.h>
+#include <bathos/cmdline.h>
 #include <bathos/stdio.h>
 #include <bathos/init.h>
 #include <bathos/pipe.h>
@@ -22,6 +23,7 @@ subsys_initcall(stdio_init);
 /* We need a main function, called by libc initialization */
 int main(int argc, char **argv)
 {
+	parse_cmdline(argc, argv);
 	/* Open stdout before getting to main */
 	bathos_setup();
 	bathos_main();
