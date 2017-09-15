@@ -205,14 +205,20 @@ int pipe_ioctl(struct bathos_pipe *pipe, struct bathos_ioctl_data *data)
 
 struct bathos_bdescr *pipe_async_get_buf(struct bathos_pipe *pipe)
 {
-	return bathos_bqueue_get_buf(bathos_dev_get_bqueue(pipe));
+	if (!pipe->dev->ops->get_bqueue)
+		return NULL;
+	return bathos_bqueue_get_buf(pipe->dev->ops->get_bqueue(pipe));
 }
 
 int pipe_async_start(struct bathos_pipe *pipe)
 {
 	int stat;
-	struct bathos_bqueue *q = bathos_dev_get_bqueue(pipe);
+	struct bathos_bqueue *q;
 
+	q = pipe->dev->ops->get_bqueue ? pipe->dev->ops->get_bqueue(pipe) :
+		NULL;
+	if (!q)
+		return -EINVAL;
 	/* Init client side of buffer queue and start queue */
 	stat = bathos_bqueue_client_init(q, pipe->buffer_available_event,
 					 pipe->buffer_processed_event);

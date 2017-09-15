@@ -31,6 +31,9 @@ struct bathos_dev_ops {
 	int (*write)(struct bathos_pipe *, const char *buf, int len);
 	int (*close)(struct bathos_pipe *);
 	int (*ioctl)(struct bathos_pipe *, struct bathos_ioctl_data *);
+#ifdef CONFIG_PIPE_ASYNC_INTERFACE
+	struct bathos_bqueue *(*get_bqueue)(struct bathos_pipe *);
+#endif
 };
 
 struct bathos_dev {

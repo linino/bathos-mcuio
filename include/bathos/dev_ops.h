@@ -106,6 +106,7 @@ int bathos_dev_read(struct bathos_pipe *pipe, char *buf, int len);
 int bathos_dev_write(struct bathos_pipe *pipe, const char *buf, int len);
 int bathos_dev_close(struct bathos_pipe *pipe);
 int bathos_dev_ioctl(struct bathos_pipe *pipe, struct bathos_ioctl_data *data);
+struct bathos_bqueue *bathos_dev_get_bqueue(struct bathos_pipe *pipe);
 
 #ifndef CONFIG_HAVE_ARCH_FIND_DEV
 static inline struct bathos_dev *bathos_arch_find_dev(struct bathos_pipe *p)

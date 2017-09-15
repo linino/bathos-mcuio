@@ -216,9 +216,13 @@ static int esp8266_wlan_async_open(void *_priv)
 	int ret;
 	struct esp8266_wlan_priv *priv = _priv;
 	const struct esp8266_wlan_platform_data *plat = priv->plat;
-	struct bathos_bqueue *q = bathos_dev_get_bqueue(priv->pipe);
+	struct bathos_dev *dev = priv->pipe->dev;
+	struct bathos_bqueue *q = dev->ops->get_bqueue ?
+	    dev->ops->get_bqueue(priv->pipe) : NULL;
 	static struct station_config config;
 
+	if (!q)
+		return -EINVAL;
 	ret = bathos_bqueue_server_init(q,
 					&event_name(esp8266_wlan_setup),
 					&event_name(esp8266_wlan_done),
@@ -286,4 +290,5 @@ error0:
 
 const struct bathos_dev_ops esp8266_wlan_dev_ops = {
 	.open = esp8266_wlan_open,
+	.get_bqueue = bathos_dev_get_bqueue,
 };

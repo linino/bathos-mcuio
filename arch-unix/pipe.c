@@ -63,8 +63,8 @@ static int unix_async_open(struct bathos_pipe *pipe)
 {
 /*  https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.2.0/com.ibm.zos.v2r2.bpxbd00/raio0w.htm */
 	int ret;
-	struct bathos_bqueue *q = bathos_dev_get_bqueue(priv->pipe);
 	struct bathos_dev *d = pipe->dev;
+	struct bathos_bqueue *q = d->ops->get_bqueue(pipe);
 	struct arch_unix_pipe_data *adata = d->priv;
 
 	adata->buffer_area = malloc(PIPE_ASYNC_NBUFS*PIPE_ASYNC_BUFSIZE);
@@ -292,12 +292,32 @@ static int unix_close(struct bathos_pipe *pipe)
 	return 0;
 }
 
+#ifdef CONFIG_PIPE_ASYNC_INTERFACE
+/*
+ * bathos_dev_get_bqueue implementation for arch-unix
+ */
+struct bathos_bqueue *unix_dev_get_bqueue(struct bathos_pipe *pipe)
+{
+	struct bathos_dev *d = pipe->dev;
+	struct arch_unix_pipe_data *adata;
+	if (!d)
+		return NULL;
+	adata = d->priv;
+	if (!adata)
+		return NULL;
+	return &adata->bqueue;
+}
+#else
+#define unix_dev_get_bqueue NULL
+#endif /* CONFIG_PIPE_ASYNC_INTERFACE */
+
 static struct bathos_dev_ops unix_dev_ops = {
 	.open = unix_open,
 	.read = unix_read,
 	.write = unix_write,
 	.close = unix_close,
 	/* ioctl not implemented */
+	.get_bqueue = unix_dev_get_bqueue,
 };
 
 /*
@@ -333,19 +353,3 @@ struct bathos_pipe *unix_fd_to_pipe(int fd)
 	return NULL;
 }
 
-#ifdef CONFIG_PIPE_ASYNC_INTERFACE
-/*
- * bathos_dev_get_bqueue implementation for arch-unix
- */
-struct bathos_bqueue *bathos_dev_get_bqueue(struct bathos_pipe *pipe)
-{
-	struct bathos_dev *d = pipe->dev;
-	struct arch_unix_pipe_data *adata;
-	if (!d)
-		return NULL;
-	adata = d->priv;
-	if (!adata)
-		return NULL;
-	return &adata->bqueue;
-}
-#endif /* CONFIG_PIPE_ASYNC_INTERFACE */
