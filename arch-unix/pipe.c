@@ -65,7 +65,7 @@ static int unix_async_open(struct bathos_pipe *pipe)
 	int ret;
 	struct bathos_dev *d = pipe->dev;
 	struct bathos_bqueue *q = d->ops->get_bqueue(pipe);
-	struct arch_unix_pipe_data *adata = d->priv;
+	struct arch_unix_pipe_data *adata = d->arch_priv;
 
 	adata->buffer_area = malloc(PIPE_ASYNC_NBUFS*PIPE_ASYNC_BUFSIZE);
 	if (!adata->buffer_area)
@@ -231,7 +231,7 @@ static int unix_open(struct bathos_pipe *pipe)
 	if (!d)
 		/* Should actually never happen */
 		return -EINVAL;
-	adata = d->priv;
+	adata = d->arch_priv;
 	if (!adata)
 		/* OH OH, should never happen */
 		return -EINVAL;
@@ -255,7 +255,7 @@ static int unix_read(struct bathos_pipe *pipe, char *buf, int len)
 	int stat;
 	if (!d)
 		return -EBADF;
-	adata = d->priv;
+	adata = d->arch_priv;
 	if (!adata)
 		/* OH OH, should never happen */
 		return -EINVAL;
@@ -270,7 +270,7 @@ static int unix_write(struct bathos_pipe *pipe, const char *buf, int len)
 	int stat;
 	if (!d)
 		return -EBADF;
-	adata = d->priv;
+	adata = d->arch_priv;
 	if (!adata)
 		return -EINVAL;
 	stat = write(adata->fd, buf, len);
@@ -283,7 +283,7 @@ static int unix_close(struct bathos_pipe *pipe)
 	struct arch_unix_pipe_data *adata;
 	if (!d)
 		return -ENODEV;
-	adata = d->priv;
+	adata = d->arch_priv;
 	if (!adata)
 		return -ENODEV;
 	(void)close(adata->fd);
@@ -302,7 +302,7 @@ struct bathos_bqueue *unix_dev_get_bqueue(struct bathos_pipe *pipe)
 	struct arch_unix_pipe_data *adata;
 	if (!d)
 		return NULL;
-	adata = d->priv;
+	adata = d->arch_priv;
 	if (!adata)
 		return NULL;
 	return &adata->bqueue;
@@ -339,7 +339,7 @@ struct bathos_dev *bathos_arch_find_dev(struct bathos_pipe *p)
 	adata->pipe = p;
 	out->name = p->n;
 	out->ops = &unix_dev_ops;
-	out->priv = adata;
+	out->arch_priv = adata;
 	return out;
 }
 

@@ -72,7 +72,7 @@ static void pipe_opened_handle(struct event_handler_data *data)
 	dev = p->dev;
 	if (!dev)
 		return;
-	adata = dev->priv;
+	adata = dev->arch_priv;
 	if (!adata)
 		return;
 	if (p->mode & BATHOS_MODE_OUTPUT)
@@ -102,7 +102,7 @@ static void pipe_closed_handle(struct event_handler_data *data)
 	dev = p->dev;
 	if (!dev)
 		return;
-	adata = dev->priv;
+	adata = dev->arch_priv;
 	if (!adata)
 		return;
 	if (p->mode & BATHOS_MODE_OUTPUT)

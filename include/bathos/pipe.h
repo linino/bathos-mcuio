@@ -40,6 +40,8 @@ struct bathos_dev {
 	const char *name;
 	const struct bathos_dev_ops * PROGMEM ops;
 	void *priv;
+	/* private field used by arch-unix only at present */
+	void *arch_priv;
 	const void *platform_data;
 	struct list_head pipes;
 };
