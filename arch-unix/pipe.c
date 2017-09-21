@@ -49,9 +49,19 @@ static struct arch_unix_pipe_data *__find_free_slot(void)
 	return NULL;
 }
 
+struct arch_unix_pipe_data *unix_get_pipe_arch_data(void)
+{
+	return __find_free_slot();
+}
+
 static void __free_slot(struct arch_unix_pipe_data *adata)
 {
 	adata->fd = BATHOS_UNIX_FREE_FD;
+}
+
+void unix_free_pipe_arch_data(struct arch_unix_pipe_data *adata)
+{
+	__free_slot(adata);
 }
 
 #ifdef CONFIG_PIPE_ASYNC_INTERFACE

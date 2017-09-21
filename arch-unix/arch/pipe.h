@@ -18,4 +18,7 @@ struct arch_unix_pipe_data {
 
 extern struct bathos_pipe *unix_fd_to_pipe(int fd);
 
+extern struct arch_unix_pipe_data *unix_get_pipe_arch_data(void);
+extern void unix_free_pipe_arch_data(struct arch_unix_pipe_data *);
+
 #endif /* __ARCH_UNIX_PIPE_H__ */
