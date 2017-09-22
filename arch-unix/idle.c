@@ -17,9 +17,9 @@ static int nfds;
 static void trigger_event_for_pipe(struct bathos_pipe *p)
 {
 	if (p->mode & BATHOS_MODE_INPUT)
-		trigger_event(&evt_pipe_input_ready, p);
+		pipe_dev_trigger_event(p->dev, &evt_pipe_input_ready);
 	if (p->mode & BATHOS_MODE_OUTPUT)
-		trigger_event(&evt_pipe_output_ready, p);
+		pipe_dev_trigger_event(p->dev, &evt_pipe_output_ready);
 }
 
 /*
