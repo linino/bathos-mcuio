@@ -46,6 +46,8 @@ enum bathos_buffer_op_type {
 };
 
 enum bathos_buffer_op_address_type {
+	/* we don't care about the address */
+	DONTCARE = 0,
 	/* local copy, for instance DMA, fixed destination or source */
 	LOCAL_MEMORY_NOINC = 1,
 	/* local copy, for instance DMA, src or dst address to be incremented */
