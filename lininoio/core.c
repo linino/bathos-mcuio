@@ -147,7 +147,7 @@ static void __association_request(struct bathos_bdescr *b,
 		d = __get_channel_descr(c, &__d);
 		p->chan_descr[i] = d->contents_id;
 	}
-	b->data_size = sizeof(*p) + sizeof(p->chan_descr) * i;
+	b->data_size = sizeof(*p) + sizeof(p->chan_descr[0]) * (i + 1);
 }
 
 static void __send_alive(struct bathos_bdescr *b,
