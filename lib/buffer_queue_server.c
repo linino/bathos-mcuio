@@ -67,3 +67,11 @@ void bathos_bqueue_server_buf_done(struct bathos_bdescr *b)
 	if (data->available_event && free_list_was_empty)
 		trigger_event(data->available_event, q);
 }
+
+void bathos_bqueue_server_buf_processed(struct bathos_bdescr *b)
+{
+	struct bathos_bqueue *q = b->queue;
+	struct bathos_bqueue_data *data = &q->data;
+
+	trigger_event(data->processed_event, b);
+}

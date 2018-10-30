@@ -31,5 +31,6 @@ int bathos_bqueue_server_init(struct bathos_bqueue *,
 			      enum bathos_buffer_op_address_type addr_type);
 
 extern void bathos_bqueue_server_buf_done(struct bathos_bdescr *b);
+extern void bathos_bqueue_server_buf_processed(struct bathos_bdescr *b);
 
 #endif /* __BUFFER_QUEUE_SERVER_H__ */
