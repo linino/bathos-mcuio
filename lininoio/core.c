@@ -227,6 +227,7 @@ static void *lininoio_periodic(void *arg)
 		op->addr.type = REMOTE_MAC;
 		op->addr.length = 6;
 		op->type = SEND;
+		data->state = ASSOCIATING;
 		break;
 	default:
 		break;
