@@ -224,6 +224,8 @@ static void *lininoio_periodic(void *arg)
 		/* HACK: also add the lininoio eth type */
 		op->addr.val[6] = 0x86;
 		op->addr.val[7] = 0xb5;
+		op->addr.type = REMOTE_MAC;
+		op->addr.length = 6;
 		op->type = SEND;
 		break;
 	default:
