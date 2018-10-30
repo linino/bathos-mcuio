@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 #include <strings.h>
+#include <stdio.h>
 
 #include <bathos/bathos.h>
 #include <bathos/errno.h>
