@@ -8,6 +8,11 @@
 #include <bathos/stdio.h>
 #include <bathos/init.h>
 #include <bathos/pipe.h>
+#ifdef CONFIG_TASK_LININOIO
+#include <lininoio.h>
+#include <bathos/lininoio-internal.h>
+#include <bathos/lininoio-dev.h>
+#endif /* CONFIG_TASK_LININOIO */
 #include <arch/hw.h>
 
 int stdio_init(void)
@@ -38,3 +43,22 @@ void console_putc(int c)
 int console_init(void)
 {
 }
+
+#ifdef CONFIG_TASK_LININOIO
+/*
+ * LininoIO raw channel
+ */
+static const struct lininoio_channel_descr __attribute__((used)) cdescr = {
+	/* Console core 0 (test !) */
+	.contents_id = LININOIO_PROTO_CONSOLE,
+};
+
+static const struct lininoio_channel_ops __attribute__((used)) cops = {
+	.input = lininoio_dev_input,
+};
+
+static struct lininoio_channel_data __attribute__((used)) cdata;
+
+declare_lininoio_channel(lininoio0, &cdescr, &cops, &cdata);
+
+#endif /* CONFIG_TASK_LININOIO */
