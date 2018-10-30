@@ -5,6 +5,7 @@
  * GNU GPLv2 or later
  */
 /* Common operations for bathos devices */
+#include <bathos/bathos.h>
 #include <bathos/dev_ops.h>
 #include <bathos/stdio.h> /* NULL */
 #include <bathos/errno.h>
