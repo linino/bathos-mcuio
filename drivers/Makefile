@@ -53,6 +53,10 @@ ifeq ($(CONFIG_LININOIO_DRIVERS), y)
   DRV_OBJS += drivers/lininoio-dev.o
 endif
 
+ifeq ($(CONFIG_ARCH_UNIX), y)
+  DRV_OBJS += drivers/unix-eth.o
+endif
+
 DRV_OBJS += drivers/radio-bridge-master.o
 DRV_OBJS += drivers/radio-bridge-slave.o
 
