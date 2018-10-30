@@ -29,3 +29,4 @@ cp $src_dir/Makefile.do_build $build_dir/Makefile
 cp $src_dir/Makefile.kconfig $build_dir/
 cp $src_dir/Kconfig* $src_dir/*.lds $build_dir/
 cp -a $src_dir/scripts $build_dir
+cp -a $src_dir/configs $build_dir
