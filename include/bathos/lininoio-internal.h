@@ -41,7 +41,7 @@ struct lininoio_channel {
 	struct lininoio_channel_data *data;
 };
 
-#define __lininoio_chan __attribute__((section(".lininoio_channels")))
+#define __lininoio_chan __attribute__((section(".lininoio_channels"), used))
 
 #define declare_lininoio_channel(n,d,o,da)		\
     struct lininoio_channel n __lininoio_chan = {	\
