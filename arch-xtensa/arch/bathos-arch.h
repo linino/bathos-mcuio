@@ -16,6 +16,8 @@
 #define interrupt_restore(a)						\
 	__asm__ __volatile__("wsr %0,ps; isync" :: "a" (a) : "memory")
 
+#define __isr __attribute__((section(".isr")))
+
 void ets_isr_attach(int intr, void *handler, void *arg);
 
 #endif /* __BATHOS_ARCH_H__ */
