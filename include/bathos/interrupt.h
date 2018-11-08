@@ -11,4 +11,8 @@
 #define interrupt_restore(flags)
 #endif
 
+#ifndef __isr
+#define __isr
+#endif
+
 #endif /* __INTERRUPT_H__ */
