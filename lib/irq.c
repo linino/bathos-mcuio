@@ -6,6 +6,7 @@
 #include <bathos/bathos.h>
 #include <bathos/errno.h>
 #include <bathos/irq.h>
+#include <bathos/interrupt.h>
 #include <bathos/irq-controller.h>
 
 int bathos_request_irq(int irq, bathos_irq_handler handler)
@@ -22,7 +23,7 @@ int bathos_request_irq(int irq, bathos_irq_handler handler)
 	return 0;
 }
 
-int bathos_enable_irq(int irq)
+int __isr bathos_enable_irq(int irq)
 {
 	struct bathos_irq_controller *ctrl = bathos_irq_to_ctrl(irq);
 
@@ -32,7 +33,7 @@ int bathos_enable_irq(int irq)
 	return 0;
 }
 
-int bathos_disable_irq(int irq)
+int __isr bathos_disable_irq(int irq)
 {
 	struct bathos_irq_controller *ctrl = bathos_irq_to_ctrl(irq);
 
@@ -42,7 +43,7 @@ int bathos_disable_irq(int irq)
 	return 0;
 }
 
-int bathos_set_pending_irq(int irq)
+int __isr bathos_set_pending_irq(int irq)
 {
 	struct bathos_irq_controller *ctrl = bathos_irq_to_ctrl(irq);
 
@@ -52,7 +53,7 @@ int bathos_set_pending_irq(int irq)
 	return 0;
 }
 
-int bathos_clear_pending_irq(int irq)
+int __isr bathos_clear_pending_irq(int irq)
 {
 	struct bathos_irq_controller *ctrl = bathos_irq_to_ctrl(irq);
 
@@ -62,7 +63,7 @@ int bathos_clear_pending_irq(int irq)
 	return 0;
 }
 
-int bathos_mask_ack_irq(int irq)
+int __isr bathos_mask_ack_irq(int irq)
 {
 	struct bathos_irq_controller *ctrl = bathos_irq_to_ctrl(irq);
 
@@ -72,7 +73,7 @@ int bathos_mask_ack_irq(int irq)
 	return 0;
 }
 
-int bathos_unmask_irq(int irq)
+int __isr bathos_unmask_irq(int irq)
 {
 	struct bathos_irq_controller *ctrl = bathos_irq_to_ctrl(irq);
 

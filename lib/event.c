@@ -195,8 +195,8 @@ static inline int has_default_hl_handler(struct event_handler_data *d)
 }
 #endif /* CONFIG_INTERRUPT_EVENTS */
 
-static void __handle_event(const struct event *__e, void *data, int ll,
-			   int *has_hl_handler)
+static void __isr __handle_event(const struct event *__e, void *data, int ll,
+				 int *has_hl_handler)
 {
 	struct event_handler_data *__d, *d;
 	struct event_handler_data ehd;
@@ -229,7 +229,7 @@ int trigger_event_immediate(const struct event *e, void *data)
 }
 
 #ifdef CONFIG_INTERRUPT_EVENTS
-int trigger_interrupt_event(int evno)
+int __isr trigger_interrupt_event(int evno)
 {
 	const struct event *e;
 	int has_hl_handler = 0;
