@@ -8,10 +8,20 @@ config MACH_EAGLE
        bool "ESP8266 eagle SOC"
        select ESP8266_DRIVERS
        select HAVE_UART
+       select INTERRUPT_EVENTS
+       select HAVE_IRQ_CONTROLLER
        help
 	"Build for the esp8266 chip"
 
 endchoice
+
+config NR_INTERRUPTS
+       int
+       # "Virtual" IRQs, one line per interrupt cause.
+       # For instance SPI IRQs are actually shared in hw, we setup and
+       # interrupt event for each spi port
+       default 32 if MACH_EAGLE
+
 
 config MACH
        string
