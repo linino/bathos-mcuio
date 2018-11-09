@@ -202,6 +202,12 @@ SECTIONS
     _isr_start = .;
     *(.isr)
     _isr_end = .;
+    default_hl_handlers_start = .;
+    *(.default_hl_handlers);
+    default_hl_handlers_end = .;
+    default_ll_handlers_start = .;
+    *(.default_ll_handlers);
+    default_ll_handlers_end = .;
   } >iram1_0_seg :iram1_0_phdr
 
   .lit4 : ALIGN(4)
