@@ -57,8 +57,7 @@
 struct esp8266_spim_priv {
 	struct bathos_pipe *pipe;
 	const struct esp8266_spim_platform_data *plat;
-	struct list_head rx_queue;
-	struct list_head tx_queue;
+	struct list_head queue;
 	void *buffer_area;
 	struct bathos_dev_data *dev_data;
 };
@@ -66,7 +65,7 @@ struct esp8266_spim_priv {
 declare_event(esp8266_spim_setup);
 declare_event(esp8266_spim_done);
 
-static void start_tx(struct esp8266_spim_priv *priv)
+static void start_trans(struct esp8266_spim_priv *priv)
 {
 	/* FIXME: IMPLEMENT THIS */
 }
@@ -117,6 +116,10 @@ static void esp8266_spim_setup_handler(struct event_handler_data *ed)
 		return;
 	}
 	op = to_operation(b);
+	if (op->addr.type != SPIM) {
+		printf("%s: UNSUPPORTED OP TYPE %d\n", __func__, op->addr.type);
+		return;
+	}
 	q = b->queue;
 	priv = bathos_bqueue_to_ll_priv(q);
 	if (!priv) {
@@ -130,16 +133,14 @@ static void esp8266_spim_setup_handler(struct event_handler_data *ed)
 		bathos_bqueue_server_buf_done(b);
 		break;
 	case SEND:
-		/* Move buffer to tail of tx queue and start a transmission */
-		list_move_tail(&b->list, &priv->tx_queue);
-		start_tx(priv);
-		break;
+	case BIDIR:
 	case RECV:
 		/*
-		 * Move buffer to tail of rx queue (waiting for buffer to be
-		 * used)
+		 * Move buffer to tail of transaction queue and start a
+		 * transmission
 		 */
-		list_move_tail(&b->list, &priv->rx_queue);
+		list_move_tail(&b->list, &priv->queue);
+		start_trans(priv);
 		break;
 	default:
 		printf("%s: ERR: invalid operation type\n", __func__);
@@ -213,8 +214,8 @@ static int esp8266_spim_open(struct bathos_pipe *pipe)
 
 	priv->plat = plat;
 	priv->pipe = pipe;
-	INIT_LIST_HEAD(&priv->rx_queue);
-	INIT_LIST_HEAD(&priv->tx_queue);
+	INIT_LIST_HEAD(&priv->queue);
+	INIT_LIST_HEAD(&priv->queue);
 	priv->buffer_area = bathos_alloc_buffer(plat->nbufs * plat->bufsize);
 	if (!priv->buffer_area) {
 		ret = -ENOMEM;
