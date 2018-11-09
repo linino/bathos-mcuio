@@ -73,8 +73,31 @@ static void start_tx(struct esp8266_spim_priv *priv)
 
 static int _spim_init(struct esp8266_spim_priv *priv)
 {
-	/* FIXME: IMPLEMENT THIS */
-	return -1;
+	const struct esp8266_spim_platform_data *plat = priv->plat;
+	uint32_t v;
+
+	/* MSB first */
+	writel(0, plat->base + SPI_CTRL);
+	/* Master mode */
+	v = readl(SPI_SLAVE + plat->base);
+	v &= ~SLAVE_MODE;
+	v |= WR_RD_BUF_EN | ALL_INTERRUPTS;
+	writel(v, plat->base + SPI_SLAVE);
+	/* 32 bytes mode */
+	v = readl(plat->base + SPI_USER1);
+	v &= ~((MOSI_BITLEN_MASK << MOSI_BITLEN_SHIFT) |
+	       (MISO_BITLEN_MASK << MISO_BITLEN_SHIFT));
+	v |= ((31 << MOSI_BITLEN_SHIFT) | (31 << MISO_BITLEN_SHIFT));
+	writel(v, plat->base + SPI_USER1);
+	/* 8MHz, divider shall be 10: prescaler 2, divider 5 */
+	writel(1 << SPI_CLOCK_PRESCALER_SHIFT |
+	       4 << SPI_CLOCK_DIVIDER_SHIFT |
+	       ((7 + 1) / 2), plat->base + SPI_CLOCK);
+
+	if (plat->setup_pins)
+		return plat->setup_pins(plat->instance);
+
+	return 0;
 }
 
 /*
