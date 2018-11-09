@@ -60,11 +60,11 @@ static void start_tx(struct esp8266_wlan_priv *priv)
 	printf("%s: sending packet\n", __func__);
 	/* FIXME: AVOID COPIES ? */
 	/* Copy destination address */
-	memcpy(pbuf->payload, op->addr.val, 6);
+	memcpy(pbuf->payload, op->addr.val.b, 6);
 	/* Copy source address */
 	memcpy(pbuf->payload + 6, mac, 6);
 	/* HACK: Copy ethernet type from dest address */
-	memcpy(pbuf->payload + 12, &op->addr.val[6], 2);
+	memcpy(pbuf->payload + 12, &op->addr.val.b[6], 2);
 	/* Copy rest of packet */
 	memcpy(pbuf->payload + 14, b->data, b->data_size);
 	{

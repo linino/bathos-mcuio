@@ -43,7 +43,7 @@ int bathos_bqueue_server_init(struct bathos_bqueue *q,
 		op->addr.type = addr_type;
 		op->operand.data = data_ptr;
 		op->operand.queue = q;
-		memset(op->addr.val, 0xff, sizeof(op->addr.val));
+		memset(op->addr.val.b, 0xff, sizeof(op->addr.val));
 		list_add(&op->operand.list, &data->free_bufs);
 		printf("added %p to free buf list %p\n",
 		       &op->operand.list, &data->free_bufs);

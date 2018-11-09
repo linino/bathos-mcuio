@@ -74,7 +74,7 @@ static void start_tx(struct unix_eth_priv *priv)
 	addr.sll_protocol = htons(pdata->eth_type);
 	addr.sll_ifindex = priv->if_index;
 	addr.sll_halen = ETHER_ADDR_LEN;
-	memcpy(addr.sll_addr, op->addr.val, ETHER_ADDR_LEN);
+	memcpy(addr.sll_addr, op->addr.val.b, ETHER_ADDR_LEN);
 	if (sendto(priv->fd, b->data, b->data_size, 0,
 		   (struct sockaddr *)&addr, sizeof(addr)) < 0)
 		printf("sendto error\n");

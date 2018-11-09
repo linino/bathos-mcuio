@@ -1,6 +1,7 @@
 #ifndef __BUFFER_H__
 #define __BUFFER_H__
 
+#include <stdint.h>
 #include <bathos/event.h>
 #include <linux/list.h>
 
@@ -81,10 +82,31 @@ enum bathos_buffer_op_address_type {
 	SPIS = 5,
 };
 
+struct bathos_spi_buffer_op_address {
+	/* Command */
+	uint32_t cmd;
+	/* Address */
+	uint32_t addr;
+	/* Flags */
+#define OVERLAPPED_TX_RX
+	uint32_t flags;
+	/* Length of mosi phase in bits */
+	uint16_t mosi_data_bits;
+	/* Length of miso phase in bits */
+	uint16_t miso_data_bits;
+	/* Length of command phase in bits (max 32) */
+	uint8_t cmd_bits;
+	/* Lenght of address phase in bits (max 32) */
+	uint8_t addr_bits;
+};
+
 struct bathos_buffer_op_address {
 	enum bathos_buffer_op_address_type type;
 	unsigned int length;
-	unsigned char val[8];
+	union {
+		unsigned char b[8];
+		struct bathos_spi_buffer_op_address a;
+	} val;
 };
 
 /*
