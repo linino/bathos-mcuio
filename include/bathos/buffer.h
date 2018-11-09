@@ -18,13 +18,28 @@
 
 struct bathos_bqueue;
 
+enum buffer_dir {
+	/* DON'T CARE */
+	ANY,
+	/* OUT: from cpu to outside */
+	OUT,
+	/* IN: from outside to cpu */
+	IN,
+};
+
 struct bathos_sglist_el {
 	void				*data;
 	int				len;
 	struct list_head		list;
+	/*
+	 * Element direction: considered for bidirectional transactions only
+	 * Must be OUT or IN in such case
+	 */
+	enum buffer_dir			dir;
 };
 
 struct bathos_bdescr {
+	enum buffer_dir			dir;
 	/*
 	 * Either we have data != NULL && sglist empty or data == NULL
 	 * and sglist !empty
@@ -43,6 +58,7 @@ enum bathos_buffer_op_type {
 	NONE = 0,
 	SEND = 1,
 	RECV = 2,
+	BIDIR = 3,
 };
 
 enum bathos_buffer_op_address_type {
@@ -54,6 +70,15 @@ enum bathos_buffer_op_address_type {
 	LOCAL_MEMORY_INC = 2,
 	/* send to/recv from remote mac address */
 	REMOTE_MAC = 3,
+	/*
+	 * spi master, value contains length in bits of cmd, data, mosi and
+	 * miso phases
+	 */
+	SPIM = 4,
+	/*
+	 * spi slave
+	 */
+	SPIS = 5,
 };
 
 struct bathos_buffer_op_address {
