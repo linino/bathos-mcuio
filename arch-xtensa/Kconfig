@@ -10,6 +10,7 @@ config MACH_EAGLE
        select HAVE_UART
        select INTERRUPT_EVENTS
        select HAVE_IRQ_CONTROLLER
+       select ISRS_IN_RAM
        help
 	"Build for the esp8266 chip"
 
