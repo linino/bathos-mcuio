@@ -1,3 +1,5 @@
+#include <generated/autoconf.h>
+
 SECTIONS
 {
 	.rodata : {
@@ -39,12 +41,14 @@ SECTIONS
 		events_start = .;
 		*(.events)
 		events_end = .;
+#ifndef CONFIG_ISRS_IN_RAM
 		default_hl_handlers_start = .;
 		*(.default_hl_handlers);
 		default_hl_handlers_end = .;
 		default_ll_handlers_start = .;
 		*(.default_ll_handlers);
 		default_ll_handlers_end = .;
+#endif
 		interrupt_events_start = .;
 		*(.interrupt_events);
 		interrupt_events_end = .;

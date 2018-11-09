@@ -54,7 +54,7 @@ TASK-y ?= task-uart.o
 AS              = $(CROSS_COMPILE)as
 LD              = $(CROSS_COMPILE)ld
 CC              = $(CROSS_COMPILE)gcc
-CPP             = $(CC) -E
+CPP             = $(CROSS_COMPILE)cpp
 AR              = $(CROSS_COMPILE)ar
 NM              = $(CROSS_COMPILE)nm
 STRIP           = $(CROSS_COMPILE)strip
@@ -145,8 +145,11 @@ $(INT_EVENTS_OBJ): $(INT_EVENTS_OBJS)
 interrupt_event_%.o: interrupt_event.c
 	$(CC) $(CFLAGS) -DINTNO=$* -c -o $@ $<
 
-bathos.o: silentoldconfig $(obj-y) $(ARCH_EXTRA) $(BUILD_DIR)/events.lds
-	$(LD) -r -T $(SRC_DIR)/bigobj.lds $(obj-y) -o $@
+$(BUILD_DIR)/bigobj.lds: $(SRC_DIR)/bigobj.lds.in
+	$(CPP) -I$(BUILD_DIR)/include -P -C $< -o $@
+
+bathos.o: silentoldconfig $(obj-y) $(ARCH_EXTRA) $(BUILD_DIR)/events.lds $(BUILD_DIR)/bigobj.lds
+	$(LD) -r -T $(BUILD_DIR)/bigobj.lds $(obj-y) -o $@
 
 $(BUILD_DIR)/events.lds: FORCE
 	$(SCRIPTS)/evt_ldsgen $@ $(SRC_DIR) $(SRC_DIR)/lib/ $(SRC_DIR)/$(ADIR) \
