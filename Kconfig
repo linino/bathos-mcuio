@@ -52,6 +52,10 @@ config INTERRUPT_EVENTS
        default y if ARCH_ARM
        default n
 
+config ISRS_IN_RAM
+       bool
+       default n
+
 config PIPE_ASYNC_INTERFACE
        bool "Async interface for pipes"
        default y if ARCH_ARM
