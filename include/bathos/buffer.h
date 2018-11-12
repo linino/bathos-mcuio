@@ -30,7 +30,7 @@ enum buffer_dir {
 
 struct bathos_sglist_el {
 	void				*data;
-	int				len;
+	unsigned int			len;
 	struct list_head		list;
 	/*
 	 * Element direction: considered for bidirectional transactions only
