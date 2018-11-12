@@ -65,9 +65,235 @@ struct esp8266_spim_priv {
 declare_event(esp8266_spim_setup);
 declare_event(esp8266_spim_done);
 
+static inline void _start(struct esp8266_spim_priv *priv)
+{
+	uint32_t v = readl(priv->plat->base + SPI_CMD);
+
+	writel(v | SPI_BUSY, priv->plat->base + SPI_CMD);
+}
+
+static inline void _do_mosi(struct esp8266_spim_priv *priv, int enable)
+{
+	uint32_t v = readl(priv->plat->base + SPI_USER);
+
+	if (enable)
+		v |= MOSI_EN;
+	else
+		v &= ~MOSI_EN;
+	writel(v, priv->plat->base + SPI_USER);
+}
+
+static inline void _enable_mosi(struct esp8266_spim_priv *priv)
+{
+	_do_mosi(priv, 1);
+}
+
+static inline void _disable_mosi(struct esp8266_spim_priv *priv)
+{
+	_do_mosi(priv, 0);
+}
+
+static inline void _do_miso(struct esp8266_spim_priv *priv, int enable)
+{
+	uint32_t v = readl(priv->plat->base + SPI_USER);
+
+	if (enable)
+		v |= MISO_EN;
+	else
+		v &= ~MISO_EN;
+	writel(v, priv->plat->base + SPI_USER);
+}
+
+static inline void _enable_miso(struct esp8266_spim_priv *priv)
+{
+	_do_miso(priv, 1);
+}
+
+static inline void _disable_miso(struct esp8266_spim_priv *priv)
+{
+	_do_miso(priv, 0);
+}
+
+static inline void _disable_all(struct esp8266_spim_priv *priv)
+{
+	uint32_t v = readl(priv->plat->base + SPI_USER);
+
+	v &= ~(COMMAND_EN | ADDR_EN | DUMMY_EN | MISO_EN | MOSI_EN);
+	writel(v, priv->plat->base + SPI_USER);
+}
+
+static int _check_bidir(struct bathos_bdescr *b,
+			struct bathos_sglist_el **tx_el,
+			struct bathos_sglist_el**rx_el)
+{
+	struct bathos_sglist_el *e;
+	int rx_found = 0, tx_found = 0;
+	*tx_el = NULL; *rx_el = NULL;
+
+	if (list_empty(&b->sglist)) {
+		/* Must have an sglist ! */
+		printf("%s: sglist empty\n", __func__);
+		return -1;
+	}
+	list_for_each_entry(e, &b->sglist, list) {
+		switch (b->dir) {
+		case ANY:
+			printf("%s: invalid ANY element\n", __func__);
+			return -1;
+		case OUT:
+			tx_found++;
+			*tx_el = e;
+			break;
+		case IN:
+			rx_found++;
+			*rx_el = e;
+			break;
+		default:
+			printf("%s: invalid %d element\n", __func__, b->dir);
+			return -1;
+		}
+	}
+	if ((rx_found != 1) || (tx_found != 1)) {
+		printf("%s: unsupported rx = %d, tx = %d\n", __func__,
+		       rx_found, tx_found);
+		return -1;
+	}
+	return 0;
+}
+
+static int _check_send(struct bathos_bdescr *b,
+		       void **data, unsigned int *len)
+{
+	if (!b->data && list_empty(&b->sglist))
+		return -1;
+	if (!list_empty(&b->sglist)) {
+		struct bathos_sglist_el *e;
+
+		e = list_first_entry(&b->sglist,
+				     struct bathos_sglist_el, list);
+		*data = e->data;
+		*len = e->len;
+		return 0;
+	}
+	*data = b->data;
+	*len = b->data_size;
+	return 0;
+}
+
+static int _check_recv(struct bathos_bdescr *b, void *data,
+		       unsigned int *len)
+{
+	/* Same checks */
+	return _check_send(b, data, len);
+}
+
+static int _setup_tx(struct esp8266_spim_priv *priv, void *data,
+		     unsigned int data_len)
+{
+	unsigned int i, j;
+	uint8_t *ptr = data;
+
+	if (data_len > 32)
+		printf("%s: WARNING: tx data truncated to 32 bytes\n",
+		       __func__);
+
+	/* Copy data to tx buffer area */
+	for (i = 0; i < data_len; ) {
+		uint32_t v;
+
+		j = i;
+		v = ptr[i++];
+		if (i < data_len)
+			v |= ptr[i++] << 8;
+		if (i < data_len)
+			v |= ptr[i++] << 16;
+		if (i < data_len)
+			v |= ptr[i++] << 24;
+		writel(v, SPI_W(j) + priv->plat->base);
+	}
+	return 0;
+}
+
+static int _setup_rx(struct esp8266_spim_priv *priv, void *data,
+		     unsigned int data_len)
+{
+	/* Nothing to do for the moment */
+	return 0;
+}
+
 static void start_trans(struct esp8266_spim_priv *priv)
 {
-	/* FIXME: IMPLEMENT THIS */
+	struct bathos_bdescr *b;
+	struct bathos_buffer_op *op;
+	struct bathos_sglist_el *tx_el = NULL, *rx_el = NULL;
+	void *data;
+	unsigned int len;
+
+	if (list_empty(&priv->queue)) {
+		printf("%s invoked with empty transaction queue\n", __func__);
+		return;
+	}
+	b = list_first_entry(&priv->queue, struct bathos_bdescr, list);
+	op = to_operation(b);
+	if (b->data) {
+		data = b->data;
+		len = b->data_size;
+	}
+
+	_disable_all(priv);
+	/* Setup first */
+	switch (op->type) {
+	case NONE:
+		/* THIS CAN'T BE, NONE ops are discarded by setup handler */
+		printf("%s: NONE operation !\n", __func__);
+		break;
+	case BIDIR:
+		if (_check_bidir(b, &tx_el, &rx_el) < 0) {
+			bathos_bqueue_server_buf_done(b);
+			return;
+		}
+		/* FALL THROUGH */
+	case SEND:
+		if (tx_el) {
+			/* BIDIR */
+			data = tx_el->data;
+			len = tx_el->len;
+		} else {
+			/* SEND */
+			if (_check_send(b, &data, &len) < 0) {
+				bathos_bqueue_server_buf_done(b);
+				return;
+			}
+		}
+		_enable_mosi(priv);
+		if (_setup_tx(priv, data, len) < 0) {
+			bathos_bqueue_server_buf_done(b);
+			return;
+		}
+		if (op->type == SEND)
+			break;
+		/* FALL THROUGH: RECV + SEND */
+	case RECV:
+		_enable_miso(priv);
+		if (rx_el) {
+			/* BIDIR */
+			data = rx_el->data;
+			len = rx_el->len;
+		} else {
+			/* RECV */
+			if (_check_recv(b, &data, &len) < 0) {
+				bathos_bqueue_server_buf_done(b);
+				return;
+			}
+		}
+		if (_setup_rx(priv, data, len) < 0) {
+			bathos_bqueue_server_buf_done(b);
+			return;
+		}
+		break;
+	}
+	/* And then finally start transaction */
+	_start(priv);
 }
 
 static int _spim_init(struct esp8266_spim_priv *priv)
