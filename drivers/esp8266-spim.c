@@ -55,11 +55,9 @@
 #define SPI_W(j)	(0x40 + (j))
 
 struct esp8266_spim_priv {
-	struct bathos_pipe *pipe;
 	const struct esp8266_spim_platform_data *plat;
 	struct list_head queue;
 	void *buffer_area;
-	struct bathos_dev_data *dev_data;
 };
 
 declare_event(esp8266_spim_setup);
@@ -422,7 +420,6 @@ static int esp8266_spim_open(struct bathos_pipe *pipe)
 		return -ENOMEM;
 
 	priv->plat = plat;
-	priv->pipe = pipe;
 	INIT_LIST_HEAD(&priv->queue);
 	INIT_LIST_HEAD(&priv->queue);
 	priv->buffer_area = bathos_alloc_buffer(plat->nbufs * plat->bufsize);
