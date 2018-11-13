@@ -27,7 +27,9 @@ int bathos_bqueue_server_init(struct bathos_bqueue *q,
 	data->done_event = done;
 	INIT_LIST_HEAD(&data->busy_bufs);
 	INIT_LIST_HEAD(&data->free_bufs);
-	if (nbufs <= 0) {
+	if (!nbufs)
+		return 0;
+	if (nbufs < 0) {
 		printf("ERR: %s, invalid buf number %d\n", __func__, nbufs);
 		return -EINVAL;
 	}
