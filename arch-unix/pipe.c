@@ -74,7 +74,7 @@ static int unix_async_open(struct bathos_pipe *pipe)
 /*  https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.2.0/com.ibm.zos.v2r2.bpxbd00/raio0w.htm */
 	int ret;
 	struct bathos_dev *d = pipe->dev;
-	struct bathos_bqueue *q = d->ops->get_bqueue(pipe);
+	struct bathos_bqueue *q = bathos_dev_get_bqueue(pipe);
 	struct arch_unix_pipe_data *adata = d->arch_priv;
 
 	adata->buffer_area = malloc(PIPE_ASYNC_NBUFS*PIPE_ASYNC_BUFSIZE);
@@ -82,14 +82,14 @@ static int unix_async_open(struct bathos_pipe *pipe)
 		return -ENOMEM;
 	INIT_LIST_HEAD(&adata->rx_queue);
 	INIT_LIST_HEAD(&adata->tx_queue);
-	ret = bathos_bqueue_server_init(q,
-					&event_name(unix_async_setup),
-					&event_name(unix_async_done),
-					adata->buffer_area,
-					PIPE_ASYNC_NBUFS,
-					PIPE_ASYNC_BUFSIZE,
-					REMOTE_MAC);
-
+	if (q)
+		ret = bathos_bqueue_server_init(q,
+						&event_name(unix_async_setup),
+						&event_name(unix_async_done),
+						adata->buffer_area,
+						PIPE_ASYNC_NBUFS,
+						PIPE_ASYNC_BUFSIZE,
+						REMOTE_MAC);
 	return ret;
 }
 
