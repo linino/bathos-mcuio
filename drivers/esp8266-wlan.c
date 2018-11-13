@@ -213,25 +213,7 @@ static void wifi_callback(System_Event_t *evt)
 
 static int esp8266_wlan_async_open(void *_priv)
 {
-	int ret;
-	struct esp8266_wlan_priv *priv = _priv;
-	const struct esp8266_wlan_platform_data *plat = priv->plat;
-	struct bathos_dev *dev = priv->pipe->dev;
-	struct bathos_bqueue *q = dev->ops->get_bqueue ?
-	    dev->ops->get_bqueue(priv->pipe) : NULL;
 	static struct station_config config;
-
-	if (!q)
-		return -EINVAL;
-	ret = bathos_bqueue_server_init(q,
-					&event_name(esp8266_wlan_setup),
-					&event_name(esp8266_wlan_done),
-					priv->buffer_area,
-					plat->nbufs,
-					plat->bufsize,
-					REMOTE_MAC);
-	if (ret)
-		return ret;
 
 	/* Init wifi */
 	wifi_station_set_hostname(CONFIG_ESP8266_STATION_HOSTNAME);
@@ -277,8 +259,29 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 		ret = -ENOMEM;
 		goto error1;
 	}
-	return bathos_dev_open(pipe);
+	ret = bathos_dev_open(pipe);
+	if (ret < 0)
+		goto error2;
+	if (pipe->mode & BATHOS_MODE_ASYNC) {
+		struct bathos_bqueue *q = dev->ops->get_bqueue ?
+			dev->ops->get_bqueue(pipe) : NULL;
 
+		if (!q)
+			goto error2;
+		ret = bathos_bqueue_server_init(q,
+						&event_name(esp8266_wlan_setup),
+						&event_name(esp8266_wlan_done),
+						priv->buffer_area,
+						plat->nbufs,
+						plat->bufsize,
+						REMOTE_MAC);
+	}
+	if (ret)
+		goto error2;
+	return ret;
+
+error2:
+	bathos_dev_uninit(pipe);
 error1:
 	bathos_free_buffer(priv->buffer_area, plat->nbufs * plat->bufsize);
 error0:
