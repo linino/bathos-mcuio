@@ -58,6 +58,9 @@ struct esp8266_spim_priv {
 	const struct esp8266_spim_platform_data *plat;
 	struct list_head queue;
 	void *buffer_area;
+	struct bathos_bdescr *b;
+	struct bathos_sglist_el *tx_el;
+	struct bathos_sglist_el *rx_el;
 };
 
 declare_event(esp8266_spim_setup);
@@ -223,7 +226,6 @@ static void start_trans(struct esp8266_spim_priv *priv)
 {
 	struct bathos_bdescr *b;
 	struct bathos_buffer_op *op;
-	struct bathos_sglist_el *tx_el = NULL, *rx_el = NULL;
 	void *data;
 	unsigned int len;
 
@@ -238,6 +240,8 @@ static void start_trans(struct esp8266_spim_priv *priv)
 		len = b->data_size;
 	}
 
+	priv->tx_el = NULL;
+	priv->rx_el = NULL;
 	_disable_all(priv);
 	/* Setup first */
 	switch (op->type) {
@@ -246,26 +250,29 @@ static void start_trans(struct esp8266_spim_priv *priv)
 		printf("%s: NONE operation !\n", __func__);
 		break;
 	case BIDIR:
-		if (_check_bidir(b, &tx_el, &rx_el) < 0) {
-			bathos_bqueue_server_buf_done(b);
+		if (_check_bidir(b, &priv->tx_el, &priv->rx_el) < 0) {
+			b->error = -EINVAL;
+			bathos_bqueue_server_buf_processed(b);
 			return;
 		}
 		/* FALL THROUGH */
 	case SEND:
-		if (tx_el) {
+		if (priv->tx_el) {
 			/* BIDIR */
-			data = tx_el->data;
-			len = tx_el->len;
+			data = priv->tx_el->data;
+			len = priv->tx_el->len;
 		} else {
 			/* SEND */
 			if (_check_send(b, &data, &len) < 0) {
-				bathos_bqueue_server_buf_done(b);
+				b->error = -EINVAL;
+				bathos_bqueue_server_buf_processed(b);
 				return;
 			}
 		}
 		_enable_mosi(priv);
 		if (_setup_tx(priv, data, len) < 0) {
-			bathos_bqueue_server_buf_done(b);
+			b->error = -EINVAL;
+			bathos_bqueue_server_buf_processed(b);
 			return;
 		}
 		if (op->type == SEND)
@@ -273,24 +280,27 @@ static void start_trans(struct esp8266_spim_priv *priv)
 		/* FALL THROUGH: RECV + SEND */
 	case RECV:
 		_enable_miso(priv);
-		if (rx_el) {
+		if (priv->rx_el) {
 			/* BIDIR */
-			data = rx_el->data;
-			len = rx_el->len;
+			data = priv->rx_el->data;
+			len = priv->rx_el->len;
 		} else {
 			/* RECV */
 			if (_check_recv(b, &data, &len) < 0) {
-				bathos_bqueue_server_buf_done(b);
+				b->error = -EINVAL;
+				bathos_bqueue_server_buf_processed(b);
 				return;
 			}
 		}
 		if (_setup_rx(priv, data, len) < 0) {
-			bathos_bqueue_server_buf_done(b);
+			b->error = -EINVAL;
+			bathos_bqueue_server_buf_processed(b);
 			return;
 		}
 		break;
 	}
 	/* And then finally start transaction */
+	priv->b = b;
 	_start(priv);
 }
 
@@ -368,7 +378,8 @@ static void esp8266_spim_setup_handler(struct event_handler_data *ed)
 		break;
 	default:
 		printf("%s: ERR: invalid operation type\n", __func__);
-		bathos_bqueue_server_buf_done(b);
+		b->error = -ENOSYS;
+		bathos_bqueue_server_buf_processed(b);
 		break;
 	}
 }
