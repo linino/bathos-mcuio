@@ -106,16 +106,13 @@ static int usb_uart_open(struct bathos_pipe *pipe)
 	if (plat->neps < NEPS)
 		return -EINVAL;
 
-	if (dev->priv)
-		return 0;
-
 	/* First open */
 	data->dev_data = bathos_dev_init(&usb_uart_ll_dev_ops, data);
 	if (!data->dev_data)
 		return -1;
 
 	data->dev = dev;
-	dev->priv = data->dev_data;
+	pipe->dev_data = data->dev_data;
 
 	memset(data->eps, 0, sizeof(data->eps));
 

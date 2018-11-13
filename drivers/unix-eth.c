@@ -290,12 +290,11 @@ static int unix_eth_open(struct bathos_pipe *pipe)
 		ret = -ENOMEM;
 		goto error1;
 	}
-	priv->dev_data = bathos_dev_init(&unix_eth_ll_dev_ops, priv);
-	if (!priv->dev_data) {
+	pipe->dev_data = bathos_dev_init(&unix_eth_ll_dev_ops, priv);
+	if (!pipe->dev_data) {
 		ret = -ENOMEM;
 		goto error2;
 	}
-	dev->priv = priv->dev_data;
 	dev->arch_priv = adata;
 	printf("%s %d, dev->priv = %p\n", __func__, __LINE__, dev->priv);
 	return bathos_dev_open(pipe);

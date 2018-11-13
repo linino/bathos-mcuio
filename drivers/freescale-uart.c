@@ -186,8 +186,9 @@ int freescale_uart_console_init(const struct freescale_uart_platform_data *plat)
 	return freescale_uart_hw_init(plat, 0, 1);
 }
 
-static int freescale_uart_init(struct bathos_dev *dev)
+static int freescale_uart_init(struct bathos_pipe *pipe)
 {
+	struct bathos_dev *dev = pipe->dev;
 	int ret = 0;
 	const struct freescale_uart_platform_data *plat = dev->platform_data;
 	struct freescale_uart_priv *priv;
@@ -203,12 +204,11 @@ static int freescale_uart_init(struct bathos_dev *dev)
 	if (ret < 0)
 		goto error;
 	priv->platform_data = plat;
-	priv->dev_data = bathos_dev_init(&freescale_ll_uart_dev_ops, priv);
-	if (!priv->dev_data) {
+	pipe->dev_data = bathos_dev_init(&freescale_ll_uart_dev_ops, priv);
+	if (!pipe->dev_data) {
 		ret = -ENODEV;
 		goto error;
 	}
-	dev->priv = priv->dev_data;
 	return 0;
 
 error:
@@ -220,7 +220,7 @@ static int freescale_uart_open(struct bathos_pipe *pipe)
 {
 	int stat = 0;
 
-	stat = freescale_uart_init(pipe->dev);
+	stat = freescale_uart_init(pipe);
 	if (stat)
 		return stat;
 	return bathos_dev_open(pipe);

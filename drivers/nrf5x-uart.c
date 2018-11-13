@@ -227,8 +227,9 @@ static void nrf5x_uart_hw_init(const struct nrf5x_uart_platform_data *plat)
 	nrf5x_uart_set_baudrate(base, 115200);
 }
 
-int nrf5x_uart_init(struct bathos_dev *dev)
+int nrf5x_uart_init(struct bathos_pipe *pipe)
 {
+	struct bathos_dev *dev = pipe->dev;
 	const struct nrf5x_uart_platform_data *plat = dev->platform_data;
 	struct nrf5x_uart_priv *priv;
 	int ret = 0;
@@ -242,12 +243,11 @@ int nrf5x_uart_init(struct bathos_dev *dev)
 	priv->platform_data = plat;
 	/* Init hw */
 	nrf5x_uart_hw_init(plat);
-	priv->dev_data = bathos_dev_init(&nrf5x_ll_uart_dev_ops, priv);
-	if (!priv->dev_data) {
+	pipe->dev_data = bathos_dev_init(&nrf5x_ll_uart_dev_ops, priv);
+	if (!pipe->dev_data) {
 		ret = -ENOMEM;
 		goto error;
 	}
-	dev->priv = priv->dev_data;
 	return 0;
 
 error:
@@ -265,7 +265,7 @@ static int nrf5x_uart_open(struct bathos_pipe *pipe)
 {
 	int stat = 0;
 
-	stat = nrf5x_uart_init(pipe->dev);
+	stat = nrf5x_uart_init(pipe);
 	if (stat)
 		return stat;
 	return bathos_dev_open(pipe);

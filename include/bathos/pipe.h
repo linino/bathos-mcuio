@@ -19,6 +19,7 @@
 #define BATHOS_MODE_INPUT_OUTPUT (BATHOS_MODE_INPUT|BATHOS_MODE_OUTPUT)
 
 struct bathos_pipe;
+struct bathos_dev_data;
 
 struct bathos_ioctl_data {
 	int code;
@@ -57,6 +58,8 @@ struct bathos_pipe {
 	struct bathos_dev *dev;
 	/* list of pipes related to the same device */
 	struct list_head list;
+	/* Device related data, relevant to current pipe */
+	struct bathos_dev_data *dev_data;
 };
 
 /*

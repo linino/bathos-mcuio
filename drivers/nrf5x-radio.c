@@ -284,8 +284,9 @@ const struct bathos_ll_dev_ops nrf5x_ll_radio_dev_ops = {
 	.tx_enable = nrf5x_radio_tx_enable,
 };
 
-static int nrf5x_radio_init(struct bathos_dev *dev)
+static int nrf5x_radio_init(struct bathos_pipe *pipe)
 {
+	struct bathos_dev *dev = pipe->dev;
 	const struct nrf5x_radio_platform_data *plat = dev->platform_data;
 	struct nrf5x_radio_priv *priv;
 	int i;
@@ -307,12 +308,11 @@ static int nrf5x_radio_init(struct bathos_dev *dev)
 	priv->status = idle;
 	base = plat->base;
 
-	priv->dev_data = bathos_dev_init(&nrf5x_ll_radio_dev_ops, priv);
-	if (!priv->dev_data) {
+	pipe->dev_data = bathos_dev_init(&nrf5x_ll_radio_dev_ops, priv);
+	if (!pipe->dev_data) {
 		bathos_free_buffer(priv, sizeof(*priv));
 		return -ENOMEM;
 	}
-	dev->priv = priv->dev_data;
 
 	/*
 	   Power on peripheral, setup registers, do not enable rx,
@@ -360,7 +360,7 @@ static int nrf5x_radio_open(struct bathos_pipe *pipe)
 {
 	int stat = 0;
 
-	stat = nrf5x_radio_init(pipe->dev);
+	stat = nrf5x_radio_init(pipe);
 	if (stat)
 		return stat;
 	return bathos_dev_open(pipe);

@@ -59,7 +59,7 @@ __get_ops(struct bathos_dev_data *data, struct bathos_ll_dev_ops *ops)
 #ifdef CONFIG_PIPE_ASYNC_INTERFACE
 struct bathos_bqueue *bathos_dev_get_bqueue(struct bathos_pipe *pipe)
 {
-	struct bathos_dev_data *data = pipe->dev->priv;
+	struct bathos_dev_data *data = pipe->dev_data;
 
 	return &data->bqueue;
 }
@@ -89,10 +89,12 @@ bathos_dev_init(const struct bathos_ll_dev_ops * PROGMEM ops, void *priv)
 	return out;
 }
 
-int bathos_dev_push_chars(struct bathos_dev *dev, const char *buf, int len)
+static int _bathos_pipe_push_chars(struct bathos_pipe *pipe,
+				   const char *buf, int len)
 {
 	int l, s, out = 0;
-	struct bathos_dev_data *data = dev->priv;
+	struct bathos_dev_data *data = pipe->dev_data;
+	struct bathos_dev *dev = pipe->dev;
 
 	s = CIRC_SPACE(data->d.cb.head, data->d.cb.tail, data->d.cb.size);
 	if (!s)
@@ -118,6 +120,16 @@ end:
 	return out + l;
 }
 
+int bathos_dev_push_chars(struct bathos_dev *dev, const char *buf, int len)
+{
+	struct bathos_pipe *p;
+
+	list_for_each_entry(p, &dev->pipes, list)
+		if (_bathos_pipe_push_chars(p, buf, len) < 0)
+			return -1;
+	return len;
+}
+
 
 static int __allocate_internal_buf(struct bathos_dev_data *data)
 {
@@ -128,7 +140,7 @@ static int __allocate_internal_buf(struct bathos_dev_data *data)
 
 int bathos_dev_open(struct bathos_pipe *pipe)
 {
-	struct bathos_dev_data *data = pipe->dev->priv;
+	struct bathos_dev_data *data = pipe->dev_data;
 	const struct bathos_ll_dev_ops *ops;
 	struct bathos_ll_dev_ops __ops;
 	int stat;
@@ -164,7 +176,7 @@ int bathos_dev_open(struct bathos_pipe *pipe)
 int bathos_dev_read(struct bathos_pipe *pipe, char *buf, int len)
 {
 	int l;
-	struct bathos_dev_data *data = pipe->dev->priv;
+	struct bathos_dev_data *data = pipe->dev_data;
 
 	if (!data->d.cb.buf || !data->d.cb.size)
 		return -EINVAL;
@@ -185,7 +197,7 @@ int bathos_dev_read(struct bathos_pipe *pipe, char *buf, int len)
 
 int bathos_dev_write(struct bathos_pipe *pipe, const char *buf, int len)
 {
-	struct bathos_dev_data *data = pipe->dev->priv;
+	struct bathos_dev_data *data = pipe->dev_data;
 	const struct bathos_ll_dev_ops *ops;
 	struct bathos_ll_dev_ops __ops;
 	int i, stat = 0;
@@ -203,7 +215,7 @@ int bathos_dev_write(struct bathos_pipe *pipe, const char *buf, int len)
 int bathos_dev_close(struct bathos_pipe *pipe)
 {
 	int stat;
-	struct bathos_dev_data *data = pipe->dev->priv;
+	struct bathos_dev_data *data = pipe->dev_data;
 
 	const struct bathos_ll_dev_ops *ops;
 	struct bathos_ll_dev_ops __ops;
@@ -224,7 +236,7 @@ int bathos_dev_close(struct bathos_pipe *pipe)
 int bathos_dev_ioctl(struct bathos_pipe *pipe,
 		     struct bathos_ioctl_data *iocdata)
 {
-	struct bathos_dev_data *data = pipe->dev->priv;
+	struct bathos_dev_data *data = pipe->dev_data;
 	
 	switch (iocdata->code) {
 	case DEV_IOC_RX_SET_HIGH_WATERMARK:

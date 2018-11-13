@@ -170,8 +170,9 @@ int esp8266_uart_hw_init(const struct esp8266_uart_platform_data *plat)
 	return 0;
 }
 
-int esp8266_uart_init(struct bathos_dev *dev)
+int esp8266_uart_init(struct bathos_pipe *pipe)
 {
+	struct bathos_dev *dev = pipe->dev;
 	const struct esp8266_uart_platform_data *plat = dev->platform_data;
 	struct esp8266_uart_priv *priv;
 	int ret = 0;
@@ -185,12 +186,11 @@ int esp8266_uart_init(struct bathos_dev *dev)
 	ret = esp8266_uart_hw_init(dev->platform_data);
 	if (ret < 0)
 		return ret;
-	priv->dev_data = bathos_dev_init(&esp8266_ll_uart_dev_ops, priv);
-	if (!priv->dev_data) {
+	pipe->dev_data = bathos_dev_init(&esp8266_ll_uart_dev_ops, priv);
+	if (!pipe->dev_data) {
 		ret = -ENOMEM;
 		goto error;
 	}
-	dev->priv = priv->dev_data;
 	return 0;
 
 error:
@@ -202,7 +202,7 @@ static int esp8266_uart_open(struct bathos_pipe *pipe)
 {
 	int stat = 0;
 
-	stat = esp8266_uart_init(pipe->dev);
+	stat = esp8266_uart_init(pipe);
 	if (stat)
 		return stat;
 	ETS_UART_INTR_ATTACH(esp8266_uart_irq_handler,  pipe->dev);

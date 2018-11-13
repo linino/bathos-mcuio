@@ -181,8 +181,9 @@ int pl011_uart_console_init(const struct pl011_uart_platform_data *plat)
 	return ret;
 }
 
-static int pl011_uart_init(struct bathos_dev *dev)
+static int pl011_uart_init(struct bathos_pipe *pipe)
 {
+	struct bathos_dev *dev = pipe->dev;
 	int ret = 0;
 	const struct pl011_uart_platform_data *plat = dev->platform_data;
 	struct pl011_uart_priv *priv;
@@ -198,12 +199,11 @@ static int pl011_uart_init(struct bathos_dev *dev)
 	if (ret < 0)
 		goto error;
 	priv->platform_data = plat;
-	priv->dev_data = bathos_dev_init(&pl011_ll_uart_dev_ops, priv);
-	if (!priv->dev_data) {
+	pipe->dev_data = bathos_dev_init(&pl011_ll_uart_dev_ops, priv);
+	if (!pipe->dev_data) {
 		ret = -ENODEV;
 		goto error;
 	}
-	dev->priv = priv->dev_data;
 	return 0;
 
 error:
@@ -215,7 +215,7 @@ static int pl011_uart_open(struct bathos_pipe *pipe)
 {
 	int stat = 0;
 
-	stat = pl011_uart_init(pipe->dev);
+	stat = pl011_uart_init(pipe);
 	if (stat)
 		return stat;
 	return bathos_dev_open(pipe);
