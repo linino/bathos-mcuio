@@ -25,4 +25,6 @@ struct esp8266_spim_platform_data {
 
 extern const struct bathos_dev_ops PROGMEM esp8266_spim_dev_ops;
 
+extern void esp8266_spim_int_handler(struct bathos_dev *);
+
 #endif /* __ESP8266_SPIM_H__ */

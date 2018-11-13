@@ -123,6 +123,34 @@ static inline void _disable_all(struct esp8266_spim_priv *priv)
 	writel(v, priv->plat->base + SPI_USER);
 }
 
+/*
+ * Interrupt handler invoked in main context
+ */
+void esp8266_spim_int_handler(struct bathos_dev *dev)
+{
+	struct esp8266_spim_priv *priv = dev->ll_priv;
+	unsigned int i;
+
+	if (priv->rx_el) {
+		uint8_t *ptr = priv->rx_el->data;
+
+		for (i = 0; i < priv->rx_el->len; i++) {
+			/* MISO data is in the second half of the buffer */
+			uint32_t v = readl(SPI_W(i) + 32 + priv->plat->base);
+
+			ptr[i++] = v & 0xff;
+			if (i < priv->rx_el->len)
+				ptr[i++] = (v >> 8) & 0xff;
+			if (i < priv->rx_el->len)
+				ptr[i++] = (v >> 16) & 0xff;
+			if (i < priv->rx_el->len)
+				ptr[i++] = (v >> 24) & 0xff;
+		}
+	}
+	priv->b->error = 0;
+	bathos_bqueue_server_buf_processed(priv->b);
+}
+
 static int _check_bidir(struct bathos_bdescr *b,
 			struct bathos_sglist_el **tx_el,
 			struct bathos_sglist_el**rx_el)
