@@ -23,12 +23,10 @@
 #define QUEUE_LEN 4
 
 struct esp8266_wlan_priv {
-	struct bathos_pipe *pipe;
 	const struct esp8266_wlan_platform_data *plat;
 	struct list_head rx_queue;
 	struct list_head tx_queue;
 	void *buffer_area;
-	struct bathos_dev_data *dev_data;
 };
 
 declare_event(esp8266_wlan_setup);
@@ -246,7 +244,6 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 		return -ENOMEM;
 
 	priv->plat = plat;
-	priv->pipe = pipe;
 	INIT_LIST_HEAD(&priv->rx_queue);
 	INIT_LIST_HEAD(&priv->tx_queue);
 	priv->buffer_area = bathos_alloc_buffer(plat->nbufs * plat->bufsize);
