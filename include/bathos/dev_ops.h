@@ -55,7 +55,7 @@ struct bathos_dev_data;
 /*
  * bathos_dev_init()
  *
- * Initialize device
+ * Initialize device instance
  *
  * @dev: pointer to device structure
  * @ops: pointer to low level device operations
@@ -67,6 +67,13 @@ struct bathos_dev_data;
 struct bathos_dev_data *
 bathos_dev_init(struct bathos_dev *dev,
 		const struct bathos_ll_dev_ops * PROGMEM ops, void *priv);
+
+/*
+ * bathos_dev_data_uninit()
+ *
+ * Uninitialize dev instance
+ */
+void bathos_dev_uninit(struct bathos_pipe *pipe);
 
 /*
  * bathos_dev_push_chars()

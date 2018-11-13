@@ -90,6 +90,11 @@ bathos_dev_init(struct bathos_dev *dev,
 	return out;
 }
 
+void bathos_dev_uninit(struct bathos_pipe *pipe)
+{
+	bathos_free_buffer(pipe->dev_data, sizeof(*(pipe->dev_data)));
+}
+
 static int _bathos_pipe_push_chars(struct bathos_pipe *pipe,
 				   const char *buf, int len)
 {
