@@ -221,7 +221,6 @@ static int eth_socket(struct unix_eth_priv *priv,
 
 static int unix_eth_async_open(void *_priv)
 {
-	int ret;
 	struct unix_eth_priv *priv = _priv;
 	struct bathos_bqueue *q = bathos_dev_get_bqueue(priv->pipe);
 	const struct unix_eth_platform_data *pdata =
@@ -233,16 +232,6 @@ static int unix_eth_async_open(void *_priv)
 		printf("%s: no platform data\n", __func__);
 		return -1;
 	}
-	
-	ret = bathos_bqueue_server_init(q,
-					&event_name(unix_eth_setup),
-					&event_name(unix_eth_done),
-					priv->buffer_area,
-					pdata->nbufs,
-					pdata->bufsize,
-					NONE);
-	if (ret)
-		return ret;
 
 	/* Open and init socket here */
 	if (eth_socket(priv, pdata) < 0)
@@ -265,6 +254,7 @@ static int unix_eth_open(struct bathos_pipe *pipe)
 	struct bathos_dev *dev = pipe->dev;
 	const struct unix_eth_platform_data *pdata = dev->platform_data;
 	struct arch_unix_pipe_data *adata;
+	struct bathos_bqueue *q;
 	int ret;
 
 	if (!pipe_mode_is_async(pipe))
@@ -297,8 +287,29 @@ static int unix_eth_open(struct bathos_pipe *pipe)
 	}
 	dev->arch_priv = adata;
 	printf("%s %d, dev->priv = %p\n", __func__, __LINE__, dev->priv);
-	return bathos_dev_open(pipe);
+	ret = bathos_dev_open(pipe);
+	if (ret)
+		goto error3;
 
+	if (pipe->mode & BATHOS_MODE_ASYNC) {
+		q = dev->ops->get_bqueue ?
+			dev->ops->get_bqueue(pipe) : NULL;
+		if (!q)
+			goto error3;
+		ret = bathos_bqueue_server_init(q,
+						&event_name(unix_eth_setup),
+						&event_name(unix_eth_done),
+						priv->buffer_area,
+						pdata->nbufs,
+						pdata->bufsize,
+						NONE);
+		if (ret)
+			goto error3;
+	}
+	return ret;
+
+error3:
+	bathos_dev_uninit(pipe);
 error2:
 	bathos_free_buffer(priv->buffer_area, pdata->nbufs * pdata->bufsize);
 error1:
