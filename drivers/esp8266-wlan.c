@@ -272,7 +272,7 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 		ret = -ENOMEM;
 		goto error0;
 	}
-	pipe->dev_data = bathos_dev_init(&esp8266_wlan_ll_dev_ops, priv);
+	pipe->dev_data = bathos_dev_init(dev, &esp8266_wlan_ll_dev_ops, priv);
 	if (!pipe->dev_data) {
 		ret = -ENOMEM;
 		goto error1;

@@ -57,13 +57,16 @@ struct bathos_dev_data;
  *
  * Initialize device
  *
+ * @dev: pointer to device structure
+ * @ops: pointer to low level device operations
  * @priv: low level private data (passed as first arg of low level ops)
  *
  * Returns opaque pointer to be passed to bathos_dev_push_chars() and other
  * high level device functions
  */
 struct bathos_dev_data *
-bathos_dev_init(const struct bathos_ll_dev_ops * PROGMEM ops, void *priv);
+bathos_dev_init(struct bathos_dev *dev,
+		const struct bathos_ll_dev_ops * PROGMEM ops, void *priv);
 
 /*
  * bathos_dev_push_chars()

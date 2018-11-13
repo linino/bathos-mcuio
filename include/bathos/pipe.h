@@ -43,6 +43,10 @@ struct bathos_dev {
 	void *priv;
 	/* private field used by arch-unix only at present */
 	void *arch_priv;
+	/* Low level driver's private data */
+	void *ll_priv;
+	/* Low level operations */
+	const struct bathos_ll_dev_ops * PROGMEM ll_ops;
 	const void *platform_data;
 	struct list_head pipes;
 };

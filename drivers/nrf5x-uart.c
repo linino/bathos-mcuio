@@ -243,7 +243,7 @@ int nrf5x_uart_init(struct bathos_pipe *pipe)
 	priv->platform_data = plat;
 	/* Init hw */
 	nrf5x_uart_hw_init(plat);
-	pipe->dev_data = bathos_dev_init(&nrf5x_ll_uart_dev_ops, priv);
+	pipe->dev_data = bathos_dev_init(dev, &nrf5x_ll_uart_dev_ops, priv);
 	if (!pipe->dev_data) {
 		ret = -ENOMEM;
 		goto error;

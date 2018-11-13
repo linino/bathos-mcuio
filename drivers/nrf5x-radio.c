@@ -308,7 +308,7 @@ static int nrf5x_radio_init(struct bathos_pipe *pipe)
 	priv->status = idle;
 	base = plat->base;
 
-	pipe->dev_data = bathos_dev_init(&nrf5x_ll_radio_dev_ops, priv);
+	pipe->dev_data = bathos_dev_init(dev, &nrf5x_ll_radio_dev_ops, priv);
 	if (!pipe->dev_data) {
 		bathos_free_buffer(priv, sizeof(*priv));
 		return -ENOMEM;

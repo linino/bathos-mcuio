@@ -193,7 +193,7 @@ int stm32f4x_uart_init(struct bathos_pipe *pipe)
 	ret = stm32f4x_uart_hw_init(dev->platform_data);
 	if (ret < 0)
 		return ret;
-	pipe->dev_data = bathos_dev_init(&stm32f4x_ll_uart_dev_ops, priv);
+	pipe->dev_data = bathos_dev_init(dev, &stm32f4x_ll_uart_dev_ops, priv);
 	if (!pipe->dev_data) {
 		ret = -ENOMEM;
 		goto error;

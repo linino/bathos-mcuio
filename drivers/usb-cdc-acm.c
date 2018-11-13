@@ -107,7 +107,7 @@ static int usb_uart_open(struct bathos_pipe *pipe)
 		return -EINVAL;
 
 	/* First open */
-	data->dev_data = bathos_dev_init(&usb_uart_ll_dev_ops, data);
+	data->dev_data = bathos_dev_init(dev, &usb_uart_ll_dev_ops, data);
 	if (!data->dev_data)
 		return -1;
 

@@ -204,7 +204,7 @@ static int freescale_uart_init(struct bathos_pipe *pipe)
 	if (ret < 0)
 		goto error;
 	priv->platform_data = plat;
-	pipe->dev_data = bathos_dev_init(&freescale_ll_uart_dev_ops, priv);
+	pipe->dev_data = bathos_dev_init(dev, &freescale_ll_uart_dev_ops, priv);
 	if (!pipe->dev_data) {
 		ret = -ENODEV;
 		goto error;
