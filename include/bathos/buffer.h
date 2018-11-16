@@ -53,6 +53,8 @@ struct bathos_bdescr {
 	const struct event		*release_event;
 	struct bathos_bqueue		*queue;
 	struct list_head		list;
+	/* User's data pointer, this is untouched by the driver and the pipe */
+	void				*user_data;
 };
 
 enum bathos_buffer_op_type {
