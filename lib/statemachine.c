@@ -11,22 +11,21 @@ int init_statemachine(const struct statemachine *m, int initial_state)
 	if (initial_state < 0 || initial_state >= m->nstates)
 		return -EINVAL;
 	for (i = 0; i < m->nruntimes; i++)
-		m->runtimes[i].curr_state = initial_state;
+		m->runtimes[i]->curr_state = initial_state;
 	return 0;
 }
 
-int feed_statemachine(const struct statemachine *m, int instance, int event)
+int feed_statemachine(const struct statemachine *m,
+		      struct statemachine_runtime *runtime, int event)
 {
 	const struct statemachine_state *next;
 	const struct statemachine_state *c;
 	state_outfunc *outf;
-	struct statemachine_runtime *runtime;
 
 	if (event < 0 || event >= m->nevents)
 		return -EINVAL;
-	if (instance < 0 || instance >= m->nruntimes)
+	if (!runtime)
 		return -EINVAL;
-	runtime = &m->runtimes[instance];
 	c = &m->states[runtime->curr_state];
 	next = &m->states[c->next_states[event]];
 	if (!next)

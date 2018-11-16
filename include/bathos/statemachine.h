@@ -33,12 +33,12 @@ struct statemachine {
 	const struct statemachine_state *states;
 	int nevents;
 	/* We may have more instances of the same state machine */
-	struct statemachine_runtime *runtimes;
+	struct statemachine_runtime **runtimes;
 	int nruntimes;
 };
 
 extern int init_statemachine(const struct statemachine *, int initial_state);
 extern int feed_statemachine(const struct statemachine *,
-			     int instance, int event);
+			     struct statemachine_runtime *, int event);
 
 #endif /* __STATEMACHINE_H__ */
