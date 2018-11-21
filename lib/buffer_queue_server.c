@@ -39,8 +39,8 @@ int bathos_bqueue_server_init(struct bathos_bqueue *q,
 		       __func__);
 		return -ENOMEM;
 	}
-	for (i = 0, op = op_area, data_ptr = area; i < nbufs;
-	     i++, op++, data_ptr += bufsize) {
+	for (i = 0, op = op_area, data_ptr = area ? area : NULL; i < nbufs;
+	     i++, op++, data_ptr = area ? data_ptr + bufsize : NULL) {
 		op->type = NONE;
 		op->addr.type = addr_type;
 		op->operand.data = data_ptr;
