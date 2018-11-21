@@ -187,5 +187,12 @@ static inline void bdescr_remap_release_event(struct bathos_bdescr *b,
 	b->release_event = e;
 }
 
+static inline int bdescr_add_sglist_el(struct bathos_bdescr *b,
+				       struct bathos_sglist_el *e)
+{
+	list_add_tail(&e->list, &b->sglist);
+	return 0;
+}
+
 
 #endif /* __BUFFER_H__ */
