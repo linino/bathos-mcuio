@@ -167,11 +167,18 @@ bdescr_shallow_copy(struct bathos_bdescr *src)
 extern struct bathos_bdescr *bdescr_copy(const struct bathos_bdescr *src);
 
 
-static inline void *bdescr_data(struct bathos_bdescr *b,
-				unsigned int *data_size)
+static inline unsigned int bdescr_data_size(struct bathos_bdescr *b)
 {
-	*data_size = b->data_size;
-	return b->data;
+	struct bathos_sglist_el *e;
+	unsigned int out = 0;
+
+	if (b->data)
+		return b->data_size;
+	if (list_empty(&b->sglist))
+		return 0;
+	list_for_each_entry(e, &b->sglist, list)
+		out += e->len;
+	return out;
 }
 
 static inline void bdescr_remap_release_event(struct bathos_bdescr *b,
