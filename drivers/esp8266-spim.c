@@ -165,7 +165,7 @@ static int _check_bidir(struct bathos_bdescr *b,
 		return -1;
 	}
 	list_for_each_entry(e, &b->sglist, list) {
-		switch (b->dir) {
+		switch (e->dir) {
 		case ANY:
 			printf("%s: invalid ANY element\n", __func__);
 			return -1;
