@@ -190,30 +190,40 @@ static int _check_bidir(struct bathos_bdescr *b,
 	return 0;
 }
 
-static int _check_send(struct bathos_bdescr *b,
-		       void **data, unsigned int *len)
+static int _do_check(struct bathos_bdescr *b,
+		     void **data, unsigned int *len, enum buffer_dir dir)
 {
 	if (!b->data && list_empty(&b->sglist))
 		return -1;
 	if (!list_empty(&b->sglist)) {
 		struct bathos_sglist_el *e;
 
-		e = list_first_entry(&b->sglist,
-				     struct bathos_sglist_el, list);
-		*data = e->data;
-		*len = e->len;
+		list_for_each_entry(e, &b->sglist, list) {
+			if (e->dir == dir) {
+				*data = e->data;
+				*len = e->len;
+				return 0;
+			}
+		}
+	}
+	if (b->dir == OUT) {
+		*data = b->data;
+		*len = b->data_size;
 		return 0;
 	}
-	*data = b->data;
-	*len = b->data_size;
-	return 0;
+	return -1;
+}
+
+static int _check_send(struct bathos_bdescr *b,
+		       void **data, unsigned int *len)
+{
+	return _do_check(b, data, len, OUT);
 }
 
 static int _check_recv(struct bathos_bdescr *b, void *data,
 		       unsigned int *len)
 {
-	/* Same checks */
-	return _check_send(b, data, len);
+	return _do_check(b, data, len, IN);
 }
 
 static int _setup_tx(struct esp8266_spim_priv *priv, void *data,
