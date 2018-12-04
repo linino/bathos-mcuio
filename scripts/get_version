@@ -5,6 +5,6 @@ export GIT_DIR=$SRC_DIR/.git
 # From Linux kernel sources, scripts/setlocalversion
 r=$(git rev-parse --verify --short HEAD)
 
-[ -z "$(git diff)" ] || r="$r+"
+[ -z "$(cd $SRC_DIR && git diff)" ] || r="$r+"
 
 echo $r
