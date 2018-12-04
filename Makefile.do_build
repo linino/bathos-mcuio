@@ -158,7 +158,7 @@ $(BUILD_DIR)/events.lds: FORCE
 version_data.o:
 	export SCRIPTS=$(SCRIPTS) CC=$(CC) OBJDUMP=$(OBJDUMP) \
 	OBJCOPY=$(OBJCOPY) ; \
-	$(SCRIPTS)/gen_version_data $(BATHOS_GIT) \
+	$(SCRIPTS)/gen_version_data "$(BATHOS_GIT), $(EXTRA_VERSION_DATA), " \
 	$$($(SCRIPTS)/get_bin_format) $@
 
 clean:
