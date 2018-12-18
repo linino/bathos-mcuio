@@ -3,6 +3,8 @@ ifeq ($(CONFIG_MACH),"atmega8")
 BATHOS_MCU = atmega8 m8
 else ifeq ($(CONFIG_MACH),"atmega32u4")
 BATHOS_MCU = atmega32u4 m32u4
+else ifeq ($(CONFIG_MACH), "atmega328p")
+BATHOS_MCU = atmega328p m5
 else
 BATHOS_MCU = atmega8 m8
 endif

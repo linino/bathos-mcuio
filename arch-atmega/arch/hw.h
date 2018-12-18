@@ -25,6 +25,8 @@ extern void pll_init(void);
 #include <arch/hw_atmega8.h>
 #elif MCU_atmega32u4
 #include <arch/hw_atmega32u4.h>
+#elif MCU_atmega328p
+#include <arch/hw_atmega328p.h>
 #else
 #error "Invalid atmel MCU defined"
 #endif
