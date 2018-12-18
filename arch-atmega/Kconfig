@@ -12,22 +12,25 @@ config MACH_ATMEGA32U4
 config MACH_ATMEGA328P
        bool
 
-if MACH_ATMEGA32U4
-
 choice
 	prompt "Target board for bathos"
 
 config BOARD_ARDUINOYUN
 	prompt "Build for Arduino Yun"
+	select MACH_ATMEGA32U4
 	bool
 
 config BOARD_LININOONE
 	prompt "Build for Linino One"
 	bool
 
-endchoice
+config BOARD_ANY_ATMEGA32U4
+       bool
+        prompt "Build for no specific atmega32u4 board"
+	select MACH_ATMEGA32U4
 
-endif
+
+endchoice
 
 config MACH
        string
@@ -35,24 +38,11 @@ config MACH
        default "atmega32u4" if MACH_ATMEGA32U4
        default "atmega328p" if MACH_ATMEGA328P
 
-choice
-	prompt "Target board for bathos"
-
-config BOARD_YUN
-       bool
-	prompt "Build for a Yun board"
-	select MACH_ATMEGA32U4
-
-config BOARD_ANY_ATMEGA32U4
-       bool
-        prompt "Build for no specific atmega32u4 board"
-
-endchoice
-
 config BOARD
        string
        default "yun" if BOARD_YUN
        default "any" if BOARD_ANY_ATMEGA32U4
+       default "lininoone" if BOARD_LININOONE
 
 config THOS_QUARTZ
        int "Oscillator frequency"
