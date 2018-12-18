@@ -9,6 +9,9 @@ config MACH_ATMEGA32U4
        bool
        select HAVE_USB
 
+config MACH_ATMEGA328P
+       bool
+
 if MACH_ATMEGA32U4
 
 choice
@@ -30,6 +33,7 @@ config MACH
        string
        default "atmega8" if MACH_ATMEGA8
        default "atmega32u4" if MACH_ATMEGA32U4
+       default "atmega328p" if MACH_ATMEGA328P
 
 choice
 	prompt "Target board for bathos"
