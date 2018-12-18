@@ -78,7 +78,7 @@ static int atmega_uart_init(void)
 	if (initialized)
 		return 0;
 	atmega_uart_set_baudrate(baud);
-	udata = bathos_dev_init(&atmega_uart_ops, NULL);
+	udata = bathos_dev_init(&__uart_dev, &atmega_uart_ops, NULL);
 	if (!udata)
 		return -ENODEV;
 	__uart_dev.priv = udata;
