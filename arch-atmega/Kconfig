@@ -29,6 +29,13 @@ config BOARD_ANY_ATMEGA32U4
         prompt "Build for no specific atmega32u4 board"
 	select MACH_ATMEGA32U4
 
+config BOARD_MODULINO
+       bool
+        prompt "Build for a Modulino board"
+	select MACH_ATMEGA328P
+	select ATMEGA_UART
+	select ATMEGA_SPI
+	select CONSOLE_UART
 
 endchoice
 
@@ -43,6 +50,7 @@ config BOARD
        default "yun" if BOARD_YUN
        default "any" if BOARD_ANY_ATMEGA32U4
        default "lininoone" if BOARD_LININOONE
+       default "modulino" if BOARD_MODULINO
 
 config THOS_QUARTZ
        int "Oscillator frequency"
