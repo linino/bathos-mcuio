@@ -30,7 +30,8 @@ MCU=$(word 1, $(BATHOS_MCU))
 CFLAGS  = -mmcu=$(MCU) -DMCU_$(MCU)=1 -funsigned-char -funsigned-bitfields \
 -ffunction-sections -fpack-struct -fshort-enums
 LDFLAGS = -nostdlib -Wl,-Map=bathos.map
-ASFLAGS = -mmcu=$(word 1, $(BATHOS_MCU)) -I$(SRC_DIR)/include \
+ASFLAGS = $(CFLAGS)
+ASFLAGS += -mmcu=$(word 1, $(BATHOS_MCU)) -I$(SRC_DIR)/include \
 -I$(SRC_DIR)/$(ADIR)
 ARCH_EXTRA_LIBS = -lc
 
