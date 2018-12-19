@@ -44,6 +44,8 @@ ifeq ($(MCU),atmega8)
 LIBARCH_OBJS += $(ADIR)/atmega-a8.o
 else ifeq ($(MCU),atmega32u4)
 LIBARCH_OBJS += $(ADIR)/atmega-32u4.o
+else ifeq ($(MCU),atmega328p)
+LIBARCH_OBJS += $(ADIR)/atmega328p.o
 endif
 
 $(ADIR)/libarch.a: $(LIBARCH_OBJS)
@@ -52,6 +54,10 @@ $(ADIR)/libarch.a: $(LIBARCH_OBJS)
 ifeq ($(MCU),atmega32u4)
 AOBJ = $(ADIR)/main.o $(ADIR)/idle.o $(ADIR)/gpio.o \
 	$(ADIR)/adc.o $(ADIR)/pwm.o
+endif
+
+ifeq ($(MCU),atmega328p)
+AOBJ = $(ADIR)/main.o $(ADIR)/idle.o $(ADIR)/gpio.o
 endif
 
 ifeq ($(CONFIG_BOARD),yun)
