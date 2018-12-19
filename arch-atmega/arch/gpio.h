@@ -21,6 +21,9 @@
 #if defined CONFIG_MACH_ATMEGA8
 #include <arch/gpio-atmega8.h>
 #endif
+#if defined CONFIG_MACH_ATMEGA328P
+#include <arch/gpio-atmega328p.h>
+#endif
 
 /* Can handle 8 gpios belonging to the same port with __gpio_set_port */
 #define HAVE_GPIO_PORT_8
