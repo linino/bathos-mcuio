@@ -93,7 +93,7 @@ static const struct bathos_ll_dev_ops PROGMEM atmega_uart_ops = {
 	.tx_enable = atmega_uart_tx_enable,
 };
 
-static int atmega_uart_set_baudrate(uint32_t baud)
+int atmega_uart_set_baudrate(uint32_t baud)
 {
 	UBRR(UART_NO) = (THOS_QUARTZ / 16) / baud - 1;
 	return 0;
@@ -114,15 +114,19 @@ static int atmega_uart_init(void)
 	return 0;
 }
 
-#if defined CONFIG_CONSOLE_UART && CONFIG_EARLY_CONSOLE
-int console_early_init(void)
+#if defined CONFIG_CONSOLE_UART
+int console_init(void)
 {
-	return atmega_uart_init();
+	atmega_uart_set_baudrate(250000);
+	atmega_uart_tx_enable(NULL);
+	return 0;
 }
-#else
-rom_initcall(atmega_uart_init);
-#endif
 
+void console_putc(int c)
+{
+	atmega_uart_putc(NULL, c);
+}
+#endif /* CONFIG_CONSOLE_UART */
 
 ISR(ISR_NAME, __attribute__((section(".text.ISR"))))
 {
