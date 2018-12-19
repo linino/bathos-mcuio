@@ -23,37 +23,65 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 
+#define UCSRB(n)	xcat(xcat(UCSR,n),B)
+# define RXEN(n)	xcat(RXEN,n)
+# define RXCIE(n)	xcat(RXCIE,n)
+# define TXEN(n)	xcat(TXEN,n)
+# define RXEN(n)	xcat(RXEN,n)
+
+#define UCSRA(n) xcat(xcat(UCSR,n),A)
+# define UDRE(n) xcat(UDRE,n)
+
+#define UDR(n) xcat(UDR,n)
+#define UBRR(n) xcat(UBRR,n)
+
 static uint8_t initialized;
 static struct bathos_dev __uart_dev;
 
+#ifdef CONFIG_MACH_ATMEGA328P
+#define UART_NO 0
+#elif defined CONFIG_MACH_ATMEGA32U4
+#define UART_NO 1
+#else
+#error "DEFINE UART_NO BEFORE COMPILING THIS FILE"
+#endif
+
+#if defined CONFIG_MACH_ATMEGA32U4
+# define ISR_NAME USART1_RX_vect
+#elif defined CONFIG_MACH_ATMEGA328P
+# define ISR_NAME USART_RX_vect
+#else
+# define ISR_NAME xcat(xcat(USART, UART_NO),_RX_vect)
+#endif
+
 static int atmega_uart_rx_enable(void *priv)
 {
-	UCSR1B |= (1 << RXEN1) | (1 << RXCIE1);
+	UCSRB(UART_NO) |= (1 << RXEN(UART_NO)) | (1 << RXCIE(UART_NO));
 	return 0;
 }
 
 static int atmega_uart_tx_enable(void *priv)
 {
-	UCSR1B |= (1 << TXEN1);
+	UCSRB(UART_NO) |= (1 << TXEN(UART_NO));
 	return 0;
 }
 
 static int atmega_uart_rx_disable(void *priv)
 {
-	UCSR1B &= ~((1 << RXEN1) | (1 << RXCIE1));
+	UCSRB(UART_NO) &= ~((1 << RXEN(UART_NO)) | (1 << RXCIE(UART_NO)));
 	return 0;
 }
 
 static int atmega_uart_tx_disable(void *priv)
 {
-	UCSR1B &= ~(1 << TXEN1);
+	UCSRB(UART_NO) &= ~(1 << TXEN(UART_NO));
 	return 0;
 }
 
 static int atmega_uart_putc(void *priv, const char c)
 {
-	while (!(UCSR1A & (1 << UDRE1)));
-	UDR1 = c;
+	while (!(UCSRA(UART_NO) & (1 << UDRE(UART_NO))));
+	UDR(UART_NO) = c;
 	return 1;
 }
 
@@ -67,7 +95,7 @@ static const struct bathos_ll_dev_ops PROGMEM atmega_uart_ops = {
 
 static int atmega_uart_set_baudrate(uint32_t baud)
 {
-	UBRR1 = (THOS_QUARTZ / 16) / baud - 1;
+	UBRR(UART_NO) = (THOS_QUARTZ / 16) / baud - 1;
 	return 0;
 }
 
@@ -96,9 +124,9 @@ rom_initcall(atmega_uart_init);
 #endif
 
 
-ISR(USART1_RX_vect, __attribute__((section(".text.ISR"))))
+ISR(ISR_NAME, __attribute__((section(".text.ISR"))))
 {
-	char c = UDR1;
+	char c = UDR(UART_NO);
 
 	(void)bathos_dev_push_chars(&__uart_dev, &c, 1);
 }
