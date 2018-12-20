@@ -14,7 +14,7 @@ mkdir -p $build_dir
 first_level_subdirs="lib drivers pp_printf $(ls -d arch-* | tr '\n' ' ') mcuio lininoio tasks"
 src_subdirs=$(for d in $first_level_subdirs ; do find $src_dir/$d -type d ; done)
 src_subdirs_files=$(find $src_subdirs -name Makefile -or -name Kconfig\* \
-			 -or -name \*.lds)
+			 -or -name \*.lds -or -name \*.cfg)
 
 for d in $src_subdirs ; do
     mkdir -p $build_dir/${d##$src_dir}
