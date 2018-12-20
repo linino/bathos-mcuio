@@ -39,6 +39,11 @@ config BOARD_MODULINO
 
 endchoice
 
+config BOARD
+       default "generic-atmega32u4" if BOARD_LININOONE
+       default "generic-atmega32u4" if BOARD_ANY_ATMEGA32U4
+       default "yun" if BOARD_ARDUINOYUN
+
 config MACH
        string
        default "atmega8" if MACH_ATMEGA8
