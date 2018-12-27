@@ -66,7 +66,7 @@ extern const int PROGMEM __bitmap_mask_ffs[BATHOS_NORDERS];
 
 /* Bitmap representing buffers */
 #define BATHOS_MAP_NBITS ((1 << (BATHOS_NORDERS)))
-unsigned long __bitmap[BATHOS_MAP_NBITS/(BITS_PER_LONG)];
+unsigned long __attribute__ ((aligned (4))) __bitmap[BATHOS_MAP_NBITS/(BITS_PER_LONG)];
 
 /* Memory managed by this allocator */
 uint8_t __attribute__ ((aligned (4))) mem[BATHOS_ALLOCATOR_MEMORY];
