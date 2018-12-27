@@ -12,6 +12,13 @@ config MACH_ATMEGA32U4
 config MACH_ATMEGA328P
        bool
 
+config NR_INTERRUPTS
+       int
+       default 19 if MACH_ATMEGA8
+       default 43 if MACH_ATMEGA32U4
+       default 26 if MACH_ATMEGA328P
+       default 64
+
 choice
 	prompt "Target board for bathos"
 

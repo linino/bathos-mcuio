@@ -34,9 +34,11 @@ INT_EVENTS_OBJS=
 INT_EVENTS_OBJ=
 else
 NR_INTERRUPTS:=$(CONFIG_NR_INTERRUPTS)
+ifneq ($(ARCH),atmega)
 INT_EVENTS_OBJS=$(foreach i,$(shell seq 0 $$(($(NR_INTERRUPTS) - 1))),\
 		  interrupt_event_$i.o)
 INT_EVENTS_OBJ=interrupt_events.o
+endif
 endif
 
 

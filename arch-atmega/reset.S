@@ -1,89 +1,5 @@
 #include <generated/autoconf.h>
 
-/* We need to provide interrupt vectors here */
-.extern do_jiffies_irq
-.section .vectors, "ax"
-
-	rjmp _bathos_start /* 0 */
-	nop /* 2 */
-	nop /* 4 */
-	nop /* 6 */
-	nop /* 8 */
-	nop /* a */
-	nop /* c */
-	nop /* e */
-	nop /* 10 */
-	nop /* 12 */
-	nop /* 14 */
-	nop /* 16 */
-	nop /* 18 */
-	nop /* 1a */
-	nop /* 1c */
-	nop /* 1e */
-	nop /* 20 */
-	nop /* 22 */
-	nop /* 24 */
-	nop /* 26 */
-#if defined CONFIG_MACH_ATMEGA32U4 && defined CONFIG_ATMEGA_USB_UART
-	rjmp __vector_10   /* 28 */
-#else
-	nop
-#endif
-	nop /* 2a */
-#if defined CONFIG_MACH_ATMEGA32U4 && defined CONFIG_ATMEGA_USB_UART
-	rjmp __vector_11   /* 2c */
-#else
-	nop
-#endif
-	nop /* 2e */
-#if defined CONFIG_MACH_ATMEGA328P
-	rjmp __vector_16 /* 30 */
-#else
-	nop
-#endif
-	nop /* 32 */
-	nop /* 34 */
-	nop /* 36 */
-	nop /* 38 */
-	nop /* 3a */
-	nop /* 3c */
-	nop /* 3e */
-	nop /* 40 */
-	nop /* 42 */
-	nop /* 44 */
-	nop /* 46 */
-#if defined CONFIG_MACH_ATMEGA328P && defined CONFIG_ATMEGA_UART
-	rjmp __vector_18 /* 48 */
-#else
-	nop
-#endif
-	nop /* 4a */
-	nop /* 4c */
-	nop /* 4e */
-	nop /* 50 */
-	nop /* 52 */
-	nop /* 54 */
-	nop /* 56 */
-	nop /* 58 */
-	nop /* 5a */
-#if defined CONFIG_MACH_ATMEGA32U4
-	rjmp __vector_23 /* 5c */
-#else
-	nop
-#endif
-	nop /* 5e */
-	nop /* 60 */
-#if defined CONFIG_MACH_ATMEGA32U4 && defined CONFIG_ATMEGA_SPI
-	rjmp __vector_24 /* 62 */
-#else
-	nop
-#endif
-#if defined CONFIG_MACH_ATMEGA32U4 && defined CONFIG_ATMEGA_UART
-	rjmp __vector_25 /* 64 */
-#else
-	nop
-#endif
-
 /* Fllowins is boot code */
 .section .boot, "ax"
 
@@ -140,7 +56,7 @@ __do_clear_bss:
 	brge 1f
 	st X+, r1
 	rjmp 0b
-	
+
 1:	/* Finally, run real code */
 	call bathos_setup
 	sei

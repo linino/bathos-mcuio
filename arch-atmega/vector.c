@@ -14,7 +14,7 @@ static void __attribute__((used, naked, noreturn,
 			   section(xstr(xcat(.vectors.,VECNO)))))
 xcat(__jump_,VECNO)(void)
 {
-	__asm__ __volatile__ ("rjmp " xstr(xcat(__vector_, VECNO)) ::);
+	__asm__ __volatile__ ("rjmp " xstr(xcat(__vector_, VECNO)) "\nnop"::);
 }
 
 /*

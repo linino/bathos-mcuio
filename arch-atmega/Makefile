@@ -77,6 +77,26 @@ ifeq ($(CONFIG_ATMEGA_SPI),y)
 AOBJ += $(ADIR)/spi.o
 endif
 
+VECTOR_OBJS := $(foreach i,$(shell seq 1 $$(($(NR_INTERRUPTS) - 1))),\
+		  $(ADIR)/vector_$i.o)
+DEFAULT_ISR_OBJS := $(foreach i,$(shell seq 1 $$(($(NR_INTERRUPTS) - 1))),\
+		  $(ADIR)/default_isr_$i.o)
+
+AOBJ += $(DEFAULT_ISR_OBJS)
+
+$(VECTOR_OBJS): $(ADIR)/vector_%.o : $(ADIR)/vector.c
+	$(CC) $(CFLAGS) -DVECNO=$* -c -o $@ $<
+
+$(DEFAULT_ISR_OBJS): $(ADIR)/default_isr_%.o : $(ADIR)/default_isr.c
+	$(CC) $(CFLAGS) -DVECNO=$* -c -o $@ $<
+
+$(ADIR)/vector_0.o: $(ADIR)/vector_0.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(ADIR)/boot.o: $(ADIR)/reset.o $(VECTOR_OBJS) $(ADIR)/vector_0.o
+	$(LD) -T $(ADIR)/boot.lds -r $(ADIR)/vector_0.o $(VECTOR_OBJS) \
+	$(ADIR)/reset.o -o $@
+
 # and the load target, not there in other architectures
 load: bathos.hex
 	avrdude -p $(word 2, $(BATHOS_MCU)) \
