@@ -222,7 +222,7 @@ static inline int __bit_to_index(int bit, int order)
 static inline void *__find_free_buf(int order, int *out_index)
 {
 	int l = __order_bitmap_len(order), i, bit, index = 0;
-	unsigned long __mask[BATHOS_NBUFS(0) / BITS_PER_LONG];
+	static unsigned long __mask[BATHOS_NBUFS(0) / BITS_PER_LONG];
 	const unsigned long * mask = __order_to_mask(order, __mask);
 	unsigned long *v = __order_bitmap(order);
 	void *out;
