@@ -32,8 +32,8 @@ void __attribute__((weak)) bathos_loop(void)
 int bathos_main(void)
 {
 #if !CONFIG_CONSOLE_NULL
-	printf("Hello, Bathos is speaking (%s built on " __DATE__ ")\n",
-	       BATHOS_GIT);
+	printf("Hello, Bathos is speaking (%s built on " __DATE__ "), board %s\n",
+	       BATHOS_GIT, CONFIG_BOARD);
 #endif
 	bathos_loop();
 	return 0;
