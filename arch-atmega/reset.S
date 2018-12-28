@@ -1,4 +1,5 @@
 #include <generated/autoconf.h>
+#include <avr/io.h>
 
 /* Fllowins is boot code */
 .section .boot, "ax"
@@ -19,11 +20,9 @@ _bathos_start:
 	/* r1  must always be 0 by convention, and clear irq in status  */
 	eor r1, r1
 	out 0x3f, r1
-	/* set SP at address 0x3d, 0x3e -- assume 1k RAM + 0x60 for regs */
-	//ldi r28, lo8(1023 + 0x60)
-	//ldi r29, hi8(1023 + 0x60)
-	ldi r28, lo8(0xaff)
-	ldi r29, hi8(0xaff)
+	/* set SP at end of internal ram */
+	ldi r28,lo8(RAMEND)
+	ldi r29,hi8(RAMEND)
 	out 0x3d, r28
 	out 0x3e, r29
 
