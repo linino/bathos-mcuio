@@ -13,14 +13,43 @@
 #ifndef BITS_PER_LONG
 #define BITS_PER_LONG		32
 #endif
+
+#ifndef BITS_PER_LONG_LONG
+#define BITS_PER_LONG_LONG	64
+#endif
+
+#ifndef BITS_PER_BYTE
+#define BITS_PER_BYTE		8
+#endif
+
+#if (BITS_PER_BYTE != 8)
+# error "UNSUPPORTED BITS_PER_BYTE"
+#else
+# define BITS_PER_BYTE_LOG2 3
+#endif
+
+#if (BITS_PER_LONG == 32)
+# define BITS_PER_LONG_LOG2 5
+#elif (BITS_PER_LONG == 64)
+# define BITS_PER_LONG_LOG2 6
+#else
+# error "UNSUPPORTED BITS_PER_LONG"
+#endif
+
+#if (BITS_PER_LONG_LONG == 64)
+# define BITS_PER_LONG_LONG_LOG2 6
+#else
+# error "UNSUPPORTED BITS_PER_LONG_LONG"
+#endif
+
 #define BIT(nr)			(1UL << (nr))
 #define BIT_ULL(nr)		(1ULL << (nr))
-#define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
-#define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
-#define BIT_ULL_MASK(nr)	(1ULL << ((nr) % BITS_PER_LONG_LONG))
-#define BIT_ULL_WORD(nr)	((nr) / BITS_PER_LONG_LONG)
-#define BITS_PER_BYTE		8
-#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
+#define BIT_MASK(nr)		(1UL << ((nr) & (BITS_PER_LONG - 1)))
+#define BIT_WORD(nr)		((nr) >> BITS_PER_LONG_LOG2)
+#define BIT_ULL_MASK(nr)	(1ULL << ((nr) & (BITS_PER_LONG_LONG - 1)))
+#define BIT_ULL_WORD(nr)	((nr) >> BITS_PER_LONG_LONG_LOG2)
+#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, \
+					     sizeof(long) << BITS_PER_BYTE_LOG2)
 
 /**
  * __set_bit - Set a bit in memory
