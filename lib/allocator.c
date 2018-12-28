@@ -79,7 +79,7 @@ static inline void __print_bitmap(void)
 	int i;
 
 	pr_debug("__bitmap = ");
-	for (i = 0; i < BATHOS_MAP_NBITS/(BITS_PER_LONG); i++)
+	for (i = 0; i < (BATHOS_MAP_NBITS >> BITS_PER_LONG_LOG2); i++)
 		pr_debug("0x%08x ", __bitmap[i]);
 	pr_debug("\n");
 }
@@ -204,7 +204,7 @@ static inline unsigned long *__order_bitmap(int order)
 {
 	pr_debug("%s: __index_to_bit(0, %d) = %d\n",
 		 __func__, order, __index_to_bit(0, order));
-	return &__bitmap[__index_to_bit(0, order)/BITS_PER_LONG];
+	return &__bitmap[__index_to_bit(0, order) >> BITS_PER_LONG_LOG2];
 }
 
 /*
@@ -226,7 +226,7 @@ static inline int __bit_to_index(int bit, int order)
 static inline void *__find_free_buf(int order, int *out_index)
 {
 	int l = __order_bitmap_len(order), i, bit, index = 0;
-	static unsigned long __mask[BATHOS_NBUFS(0) / BITS_PER_LONG];
+	static unsigned long __mask[BATHOS_NBUFS(0) >> BITS_PER_LONG_LOG2];
 	const unsigned long * mask = __order_to_mask(order, __mask);
 	unsigned long *v = __order_bitmap(order);
 	void *out;
@@ -241,7 +241,7 @@ static inline void *__find_free_buf(int order, int *out_index)
 			int mask_ffs = __order_to_bitmap_mask_ffs(order);
 
 			bit = (ffs(v[i] & mask[i]) - 1) - mask_ffs +
-			    i * BITS_PER_LONG;
+			    (i << BITS_PER_LONG_LOG2);
 			pr_debug("__find_free_buf: bit %d is set\n", bit);
 			pr_debug("ffs(mask[%d]) = %d\n", order, mask_ffs);
 			index = __bit_to_index(bit, order);
