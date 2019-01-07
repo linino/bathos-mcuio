@@ -10,6 +10,7 @@
 #define ATMEGA_PORTB 0
 #define ATMEGA_PORTC 1
 #define ATMEGA_PORTD 2
+#define ATMEGA_PORTE 3
 
 #define PORTS_BASE 0x05
 
