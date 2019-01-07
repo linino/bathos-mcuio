@@ -170,7 +170,8 @@ struct baudrate {
 
 static const struct baudrate PROGMEM baud[NBAUDRATES] = {
 	{125000, "125000"},
-	{250000, "250000"}
+	{250000, "250000"},
+	{1000000, "1000000"},
 };
 
 static uint8_t baud_idx = 1;
