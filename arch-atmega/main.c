@@ -9,6 +9,7 @@
  * calling the regular bathos main function
  */
 #include <arch/hw.h>
+#include <arch/gpio.h>
 #include <generated/autoconf.h>
 #include <bathos/delay.h>
 #include <bathos/bathos.h>
@@ -23,5 +24,9 @@ int avr_bathos_main(void)
 	/* Without this, USB doesn't seem to work well */
 	mdelay(200);
 #endif
+#if defined CONFIG_BOARD_MODULINO
+	/* Turn off esp8266 */
+	gpio_dir_af(GPIO_NR(ATMEGA_PORTE, 1), 1, 0, 0);
+#endif	
 	return bathos_main();
 }
