@@ -81,6 +81,17 @@ config ATMEGA_UART
        help
          Add an UART driver for the atmega
 
+config ATMEGA_UART_DEFAULT_BAUD_RATE
+       int "Atmega uart default baud rate"
+       depends on ATMEGA_UART
+       default 1000000 if BOARD_MODULINO
+       default 250000
+       help
+	Select uart's default baud rate. WARNING: setting "standard" baud
+	rates (such as 115200) could result in high bit rate errors if
+	board's xtal doesn't have the proper frequency (we have no pll here,
+	just a divider !).
+
 config ATMEGA_SPI
        bool "Atmega SPI driver"
        select HAVE_SPI

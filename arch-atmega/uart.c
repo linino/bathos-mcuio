@@ -102,7 +102,7 @@ int atmega_uart_set_baudrate(uint32_t baud)
 static int atmega_uart_init(void)
 {
 	void *udata;
-	uint32_t baud = 250000; /* Target baud rate */
+	uint32_t baud = CONFIG_ATMEGA_UART_DEFAULT_BAUD_RATE;
 	if (initialized)
 		return 0;
 	atmega_uart_set_baudrate(baud);
@@ -117,7 +117,7 @@ static int atmega_uart_init(void)
 #if defined CONFIG_CONSOLE_UART
 int console_init(void)
 {
-	atmega_uart_set_baudrate(250000);
+	atmega_uart_set_baudrate(CONFIG_ATMEGA_UART_DEFAULT_BAUD_RATE);
 	atmega_uart_tx_enable(NULL);
 	return 0;
 }
