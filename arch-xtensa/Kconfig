@@ -11,6 +11,7 @@ config MACH_EAGLE
        select INTERRUPT_EVENTS
        select HAVE_IRQ_CONTROLLER
        select ISRS_IN_RAM
+       select HAVE_LWIP
        help
 	"Build for the esp8266 chip"
 
