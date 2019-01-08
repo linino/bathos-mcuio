@@ -7,7 +7,7 @@
 #include "mcuio-function.h"
 
 
-static struct mcuio_func_descriptor PROGMEM zero_descr = {
+static const struct mcuio_func_descriptor PROGMEM zero_descr = {
 	.device = 0xdead,
 	.vendor = 0xbeef,
 	.rev = 0,
@@ -20,7 +20,7 @@ const char PROGMEM zero_ro_contents[8] = "mcuio";
 
 const unsigned int PROGMEM zero_ro_contents_length = sizeof(zero_ro_contents);
 
-char PROGMEM zero_rw_contents[8] = "deadbeef";
+const char PROGMEM zero_rw_contents[8] = "deadbeef";
 
 const unsigned int PROGMEM zero_rw_contents_length = sizeof(zero_rw_contents);
 
