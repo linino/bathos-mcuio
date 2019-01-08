@@ -268,6 +268,9 @@ config HZ
        default 62500 if MACH_VERSATILE
        default 128 if MACH_NRF51822
 
+config HAVE_LWIP
+       bool
+
 
    source "tasks/Kconfig"
 
