@@ -19,6 +19,10 @@ LIB_OBJS += lib/shell.o
 LIB_OBJS += lib/irq.o
 LIB_OBJS += lib/cmdline.o
 
+ifeq ($(CONFIG_HAVE_LWIP),y)
+LIB_OBJS += lib/tcp-server-lwip-raw.o
+endif
+
 $(LIBBATHOS): $(LIB_OBJS)
 	$(AR) r $@ $(LIB_OBJS)
 
