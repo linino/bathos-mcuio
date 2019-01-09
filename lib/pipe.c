@@ -109,25 +109,28 @@ struct bathos_pipe *pipe_open(const char *n, int mode, void *data)
 	out->mode = mode;
 	out->input_ready_event = &evt_pipe_input_ready;
 	out->output_ready_event = &evt_pipe_output_ready;
-	dev  = bathos_find_dev(out);
-	if (!dev) {
-		__do_free_pipe(out);
-		bathos_errno = ENXIO;
-		return NULL;
-	}
-	out->dev = dev;
-	if (!dev->pipes.next)
-		INIT_LIST_HEAD(&dev->pipes);
-	ops = __get_dev_ops(&__ops, dev);
-	if (ops->open) {
-		stat = ops->open(out);
-		if (stat) {
+	out->dev = NULL;
+	if (n) {
+		dev  = bathos_find_dev(out);
+		if (!dev) {
 			__do_free_pipe(out);
-			bathos_errno = stat;
+			bathos_errno = ENXIO;
 			return NULL;
 		}
+		out->dev = dev;
+		if (!dev->pipes.next)
+			INIT_LIST_HEAD(&dev->pipes);
+		ops = __get_dev_ops(&__ops, dev);
+		if (ops->open) {
+			stat = ops->open(out);
+			if (stat) {
+				__do_free_pipe(out);
+				bathos_errno = stat;
+				return NULL;
+			}
+		}
+		list_add(&out->list, &dev->pipes);
 	}
-	list_add(&out->list, &dev->pipes);
 	e = mode & BATHOS_MODE_INPUT ? &evt_input_pipe_opened :
 	    &evt_output_pipe_opened;
 	trigger_event(e, out);
