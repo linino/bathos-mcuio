@@ -24,6 +24,8 @@ enum tcp_conn_state
 	ES_CLOSING
 };
 
+struct bathos_pipe;
+
 /* struct representing a tcp connection */
 struct tcp_conn_data
 {
@@ -33,6 +35,10 @@ struct tcp_conn_data
 	uint16_t written;
 	uint16_t acknowledged;
 	int must_close;
+	/* connection can be closed when this is !0 */
+	int can_close;
+	/* related pipe (if any) */
+	struct bathos_pipe *pipe;
 	/* Server private data belonging to this connection */
 	void *priv;
 };
@@ -61,6 +67,7 @@ struct tcp_server_socket_lwip_raw {
 	void (*netif_idle)(struct netif *);
 	struct netif *netif;
 	struct tcp_pcb *tcp_conn_pcb;
+	struct bathos_pipe *pipe;
 	void *server_priv;
 };
 

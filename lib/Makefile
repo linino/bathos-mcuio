@@ -21,6 +21,7 @@ LIB_OBJS += lib/cmdline.o
 
 ifeq ($(CONFIG_HAVE_LWIP),y)
 LIB_OBJS += lib/tcp-server-lwip-raw.o
+LIB_OBJS += lib/tcp-server-lwip-pipe.o
 endif
 
 $(LIBBATHOS): $(LIB_OBJS)
