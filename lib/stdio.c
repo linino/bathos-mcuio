@@ -34,6 +34,14 @@ rom_initcall(console_init);
 
 #endif
 
+void pipe_putc(struct bathos_pipe *p, int _c)
+{
+	char c = _c;
+
+	if (p)
+		pipe_write(p, (char *)&c, 1);
+}
+
 #ifdef CONFIG_STDOUT_CONSOLE
 void __attribute__((weak)) putc(int c)
 {
@@ -49,9 +57,7 @@ void __attribute__((weak)) putc(int c)
 #ifdef CONFIG_COPY_STDOUT_TO_CONSOLE
 	console_putc(c);
 #endif
-	if (!bathos_stdout)
-		return;
-	pipe_write(bathos_stdout, (char *)&c, 1);
+	pipe_putc(bathos_stdout, c);
 }
 #endif
 
@@ -85,9 +91,9 @@ static int stdio_init(void)
 }
 core_initcall(stdio_init);
 
-int puts(const char *s)
+int pipe_puts(struct bathos_pipe *p, const char *s)
 {
 	while (*s)
-		putc (*s++);
+		pipe_putc (p, *s++);
 	return 0;
 }

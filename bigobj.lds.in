@@ -70,3 +70,4 @@ PROVIDE(__printf = pp_printf);
 PROVIDE(__sprintf = pp_sprintf);
 PROVIDE(__vprintf = pp_sprintf);
 PROVIDE(__vsprintf = pp_vsprintf);
+PROVIDE(__pipe_printf = pipe_pp_printf);

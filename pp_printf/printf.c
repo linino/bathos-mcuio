@@ -11,12 +11,34 @@
 
 static char print_buf[CONFIG_PRINT_BUFSIZE];
 
-int pp_vprintf(const char * PROGMEM fmt, va_list args)
+int pipe_pp_vprintf(struct bathos_pipe *p, const char * PROGMEM fmt,
+		    va_list args)
 {
 	int ret;
 
 	ret = pp_vsprintf(print_buf, fmt, args);
-	puts(print_buf);
+	pipe_puts(p, print_buf);
+	return ret;
+}
+
+int pp_printf(const char * PROGMEM fmt, ...)
+{
+	va_list args;
+	int ret;
+
+	va_start(args, fmt);
+#ifdef CONFIG_STDOUT_CONSOLE
+	{
+		const char *ptr;
+
+		ret = pp_vsprintf(print_buf, fmt, args);
+		for (ptr = print_buf; *ptr; ptr++)
+			console_putc(*ptr);
+	}
+#else
+	ret = pipe_pp_vprintf(bathos_stdout, fmt, args);
+#endif
+	va_end(args);
 	return ret;
 }
 
@@ -32,13 +54,13 @@ int pp_sprintf(char *s, const char * PROGMEM fmt, ...)
 }
 
 
-int pp_printf(const char * PROGMEM fmt, ...)
+int pipe_pp_printf(struct bathos_pipe *p, const char * PROGMEM fmt, ...)
 {
 	va_list args;
 	int ret;
 
 	va_start(args, fmt);
-	ret = pp_vprintf(fmt, args);
+	ret = pipe_pp_vprintf(p, fmt, args);
 	va_end(args);
 
 	return ret;

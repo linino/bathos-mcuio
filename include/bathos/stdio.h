@@ -19,6 +19,8 @@
 
 #include <generated/autoconf.h>
 
+struct bathos_pipe;
+
 /* These 4 are actually pp_printf and friends */
 extern int __printf(const char * PROGMEM fmt, ...)
         __attribute__((format(printf,1,2)));
@@ -37,6 +39,11 @@ extern int __vprintf(const char * PROGMEM fmt, va_list args);
 extern int __vsprintf(char *buf, const char * PROGMEM, va_list)
         __attribute__ ((format (printf, 2, 0)));
 
+extern int __pipe_printf(struct bathos_pipe *, const char * PROGMEM fmt, ...)
+	__attribute__((format(printf,2,3)));
+
+#define pipe_printf(a, b, args...) __pipe_printf(a, b, ##args)
+
 #define vsprintf(a, args...) __vsprintf(PSTR(a), ##args)
 
 #ifndef DEBUG
@@ -47,12 +54,18 @@ extern int __vsprintf(char *buf, const char * PROGMEM, va_list)
 
 /* Puts is not actually "standard", as it doesn't add the trailing newline */
 extern void putc(int c);
-extern int puts(const char *s);
 
 struct bathos_pipe;
 
 extern struct bathos_pipe *bathos_stdout;
 extern struct bathos_pipe *bathos_stdin;
+
+extern int pipe_puts(struct bathos_pipe *, const char *s);
+
+static inline int puts(const char *s)
+{
+	return pipe_puts(bathos_stdout, s);
+}
 
 extern void console_putc(int c);
 extern int console_init(void);
