@@ -24,7 +24,6 @@ struct bathos_dev_data {
 			int tail;
 			int size;
 			char *buf;
-			char *ext_buf;
 		} cb;
 		struct {
 
