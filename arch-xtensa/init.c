@@ -7,6 +7,8 @@
 #include <bathos/init.h>
 #include <bathos/jiffies.h>
 #include <bathos/event.h>
+#include <bathos/tcp-server-connection-dev.h>
+
 
 #define BATHOS_QUEUE_LEN 16
 
@@ -50,3 +52,22 @@ void user_init(void)
 	bathos_setup();
 	bathos_main();
 }
+
+
+#ifdef CONFIG_ENABLE_TCP_SERVER_DEV
+
+static struct bathos_dev tcp_connection_dev
+__attribute__((section(".bathos_devices"), aligned(4), used)) = {
+	.name = "tcp-server-connection",
+	.ops = &tcp_server_connection_dev_ops,
+};
+
+extern const struct bathos_dev_ops tcp_server_dev_ops;
+
+static struct bathos_dev tcp_dev
+__attribute__((section(".bathos_devices"), aligned(4), used)) = {
+	.name = "tcp-server-main",
+	.ops = &tcp_server_dev_ops,
+};
+
+#endif /* CONFIG_ENABLE_TCP_SERVER_DEV */

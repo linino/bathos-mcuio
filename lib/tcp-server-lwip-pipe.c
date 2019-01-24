@@ -149,9 +149,3 @@ const struct bathos_dev_ops tcp_server_dev_ops = {
 	.close = tcp_server_dev_close,
 	.ioctl = tcp_server_dev_ioctl,
 };
-
-static struct bathos_dev tcp_dev
-__attribute__((section(".bathos_devices"), aligned(4), used)) = {
-	.name = "tcp-server-main",
-	.ops = &tcp_server_dev_ops,
-};
