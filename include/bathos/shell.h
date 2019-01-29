@@ -5,10 +5,12 @@
 
 /* simple bathos shell */
 
+struct bathos_pipe;
+
 struct shell_cmd {
 	const char *str;
-	int (*handler)(int argc, char *argv[]);
-	void (*help)(int argc, char *argv[]);
+	int (*handler)(struct bathos_pipe *, int argc, char *argv[]);
+	void (*help)(struct bathos_pipe *, int argc, char *argv[]);
 };
 
 #ifndef cat

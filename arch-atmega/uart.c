@@ -176,14 +176,14 @@ static const struct baudrate PROGMEM baud[NBAUDRATES] = {
 
 static uint8_t baud_idx = 1;
 
-static int baudrate_handler(int argc, char *argv[])
+static int baudrate_handler(struct bathos_pipe *p, int argc, char *argv[])
 {
 	int ret = 0, i;
 
 	if (argc > 1) {
 		i = argv[1][0] - '1';
 		if ((i < 0) || (i > NBAUDRATES)) {
-			printf("Invalid baudrate: %d\n", i);
+			pipe_printf(p, "Invalid baudrate: %d\n", i);
 			ret = -EINVAL;
 		}
 		else {
@@ -194,18 +194,18 @@ static int baudrate_handler(int argc, char *argv[])
 
 	for (i = 0; i < NBAUDRATES; i++) {
 		if (i == baud_idx)
-			printf("*");
+			pipe_printf(p, "*");
 		else
-			printf(" ");
-		printf(" %d: %s\n", i + 1, baud[i].descr);
+			pipe_printf(p, " ");
+		pipe_printf(p, " %d: %s\n", i + 1, baud[i].descr);
 	}
 
 	return ret;
 }
 
-static void baudrate_help(int argc, char *argv[])
+static void baudrate_help(struct bathos_pipe *p, int argc, char *argv[])
 {
-	printf("show/set uart baudrate\n");
+	pipe_printf(p, "show/set uart baudrate\n");
 }
 
 declare_shell_cmd(baudrate, baudrate_handler, baudrate_help);
