@@ -57,29 +57,34 @@ struct bathos_dev *bathos_find_dev(struct bathos_pipe *p)
 	return bathos_arch_find_dev(p);
 }
 
+void __pipe_trigger_event(struct bathos_pipe *p, const struct event *evt,
+			  int immediate)
+{
+	const struct event *e;
+	int  stat;
+
+	/* Maybe remap event */
+	e = evt;
+	if (evt == &evt_pipe_input_ready)
+		e = p->input_ready_event;
+	if (evt == &evt_pipe_output_ready)
+		e = p->output_ready_event;
+	stat = immediate ? trigger_event_immediate(e, p): trigger_event(e, p);
+	if (stat < 0)
+		printf("WARN: missing pipe evt\n");
+}
+
 void __pipe_dev_trigger_event(struct bathos_dev *dev, const struct event *evt,
 			      int immediate)
 {
 	struct bathos_pipe *p;
-	const struct event *e;
-	int stat;
 
 	if (!dev->pipes.next)
 		/* List not even initialized */
 		return;
 
-	list_for_each_entry(p, &dev->pipes, list) {
-		/* Maybe remap event */
-		e = evt;
-		if (evt == &evt_pipe_input_ready)
-			e = p->input_ready_event;
-		if (evt == &evt_pipe_output_ready)
-			e = p->output_ready_event;
-		stat = immediate ? trigger_event_immediate(e, p):
-			trigger_event(e, p);
-		if (stat < 0)
-			printf("WARN: missing pipe evt\n");
-	}
+	list_for_each_entry(p, &dev->pipes, list)
+		__pipe_trigger_event(p, evt, immediate);
 }
 
 struct bathos_pipe *pipe_open(const char *n, int mode, void *data)

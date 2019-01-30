@@ -82,6 +82,8 @@ int pipe_ioctl(struct bathos_pipe *, struct bathos_ioctl_data *data);
 
 void __pipe_dev_trigger_event(struct bathos_dev *dev, const struct event *evt,
 			      int immediate);
+void __pipe_trigger_event(struct bathos_pipe *p, const struct event *evt,
+			  int immediate);
 
 #ifdef CONFIG_PIPE_ASYNC_INTERFACE
 
@@ -113,6 +115,19 @@ pipe_dev_trigger_event_immediate(struct bathos_dev *dev,
 {
 	__pipe_dev_trigger_event(dev, evt, 1);
 }
+
+static inline void
+pipe_trigger_event(struct bathos_pipe *p, const struct event *evt)
+{
+	__pipe_trigger_event(p, evt, 0);
+}
+
+static inline void
+pipe_trigger_event_immediate(struct bathos_pipe *p, const struct event *evt)
+{
+	__pipe_trigger_event(p, evt, 1);
+}
+
 
 static inline void pipe_remap_input_ready_event(struct bathos_pipe *pipe,
 						const struct event * PROGMEM e)
