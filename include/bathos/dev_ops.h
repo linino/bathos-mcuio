@@ -84,9 +84,23 @@ void bathos_dev_uninit(struct bathos_pipe *pipe);
  * @buf: pointer to buffer containing received chars
  * @len: length of @buf
  *
+ * If a device was opened multiple times, push the buffer to each instance
  * Returns 0 on success, errno on error.
  */
 int bathos_dev_push_chars(struct bathos_dev *dev, const char *buf, int len);
+
+/*
+ * bathos_pipe_push_chars()
+ *
+ * This pushes chars in @buf through a single pipe instance, does not
+ * affect any other pipe opened on the same device
+ *
+ * @dev: pointer to corresponding bathos device
+ * @buf: pointer to buffer containing received chars
+ * @len: length of @buf
+ *
+ */
+int bathos_pipe_push_chars(struct bathos_pipe *p, const char *buf, int len);
 
 #ifdef CONFIG_PIPE_ASYNC_INTERFACE
 

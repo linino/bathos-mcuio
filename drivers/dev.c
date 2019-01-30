@@ -94,12 +94,10 @@ void bathos_dev_uninit(struct bathos_pipe *pipe)
 	bathos_free_buffer(pipe->dev_data, sizeof(*(pipe->dev_data)));
 }
 
-static int _bathos_pipe_push_chars(struct bathos_pipe *pipe,
-				   const char *buf, int len)
+int bathos_pipe_push_chars(struct bathos_pipe *pipe, const char *buf, int len)
 {
 	int l, s, out = 0;
 	struct bathos_dev_data *data = pipe->dev_data;
-	struct bathos_dev *dev = pipe->dev;
 
 	s = CIRC_SPACE(data->d.cb.head, data->d.cb.tail, data->d.cb.size);
 	if (!s)
@@ -121,7 +119,7 @@ static int _bathos_pipe_push_chars(struct bathos_pipe *pipe,
 end:
 	if (CIRC_CNT(data->d.cb.head, data->d.cb.tail, data->d.cb.size) >
 	    data->rx_hwm)
-		pipe_dev_trigger_event(dev, &evt_pipe_input_ready);
+		pipe_trigger_event(pipe, &evt_pipe_input_ready);
 	return out + l;
 }
 
@@ -130,7 +128,7 @@ int bathos_dev_push_chars(struct bathos_dev *dev, const char *buf, int len)
 	struct bathos_pipe *p;
 
 	list_for_each_entry(p, &dev->pipes, list)
-		if (_bathos_pipe_push_chars(p, buf, len) < 0)
+		if (bathos_pipe_push_chars(p, buf, len) < 0)
 			return -1;
 	return len;
 }
