@@ -99,6 +99,14 @@ int bathos_pipe_push_chars(struct bathos_pipe *pipe, const char *buf, int len)
 	int l, s, out = 0;
 	struct bathos_dev_data *data = pipe->dev_data;
 
+	if (!buf && !len) {
+		/* Forcibly close pipe */
+		data->d.cb.head = data->d.cb.tail = -1;
+		/* Client will read and find nothing, so pipe will be closed */
+		pipe_trigger_event(pipe, &evt_pipe_input_ready);
+		return 0;
+	}
+
 	s = CIRC_SPACE(data->d.cb.head, data->d.cb.tail, data->d.cb.size);
 	if (!s)
 		return -ENOMEM;
@@ -183,6 +191,9 @@ int bathos_dev_read(struct bathos_pipe *pipe, char *buf, int len)
 
 	if (!data->d.cb.buf || !data->d.cb.size)
 		return -EINVAL;
+
+	if (data->d.cb.head == -1 && data->d.cb.tail == -1)
+		return 0;
 
 	l = min(len, CIRC_CNT_TO_END(data->d.cb.head, data->d.cb.tail,
 				     data->d.cb.size));

@@ -139,11 +139,13 @@ static void __shell_input_handle(struct event_handler_data *ed)
 	stat = pipe_read(p, data->curr_ptr,
 			 sizeof(data->buf) - (data->curr_ptr - data->buf));
 	if (stat < 0) {
+		if (stat == -EAGAIN)
+			return;
 		pr_debug("shell: error reading from stdin\n");
 		return;
 	}
 	if (!stat) {
-		/* Nothing available, close everything and exit */
+		/* The other side has closed, let's shut the pipe down */
 		__shell_exit(data);
 		return;
 	}
