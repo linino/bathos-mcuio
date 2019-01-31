@@ -235,12 +235,13 @@ static void do_free_pipe(struct event_handler_data *data)
 	list_del_init(&p->list);
 	struct bathos_dev_ops __ops, *ops;
 
+	ops = __get_dev_ops(&__ops, p->dev);
+	if (ops->on_pipe_close)
+		ops->on_pipe_close(p);
 	/* Last pipe related to this device ? */
-	if (list_empty(&p->dev->pipes)) {
-		ops = __get_dev_ops(&__ops, p->dev);
+	if (list_empty(&p->dev->pipes))
 		if (ops->close)
 			ops->close(p);
-	}
 	__do_free_pipe(p);
 }
 
