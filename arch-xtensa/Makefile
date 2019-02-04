@@ -8,14 +8,14 @@ MACH_DIR = $(ADIR)/mach-$(shell echo $(CONFIG_MACH))
 ARCH_CFLAGS += -I$(SRC_DIR)/$(MACH_DIR) -DARCH_HAS_BUILTIN_FFS
 
 # No boot code for this machine at the moment, we just build libraries.
-BOOT_OBJ =
+BOOT_OBJ = $(ADIR)/init.o
 
 # No io.o for this arch
 IO_OBJ =
 
 # Library
 LIBARCH = $(BUILD_DIR)/$(ADIR)/libarch.a
-LIBARCH_OBJS = $(ADIR)/init.o $(ADIR)/jiffies.o
+LIBARCH_OBJS = $(ADIR)/jiffies.o
 
 ARCH_EXTRA_LIBS = -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain
 
