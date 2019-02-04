@@ -221,7 +221,7 @@ SECTIONS
 
   .irom0.text : ALIGN(4)
   {
-    _irom0_text_start = ABSOLUTE(.);
+    /*  _irom0_text_start = ABSOLUTE(.); */
     *(.irom0.literal .irom.literal .irom.text.literal .irom0.text .irom.text)
     *bathos.o(.literal*, .text*)
     *libbathos.a:(.literal .text .literal.* .text.*)
