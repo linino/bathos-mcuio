@@ -86,7 +86,7 @@ LOBJ = pp_printf/printf.o pp_printf/vsprintf-xint.o
 CFLAGS  += -I$(SRC_DIR)/pp_printf -DCONFIG_PRINT_BUFSIZE=100
 
 # Use our own linker script, if it exists
-LDFLAGS += $(patsubst %.lds, -T %.lds, $(LDS))
+LDFLAGS += $(USER_LDFLAGS) $(patsubst %.lds, -T %.lds, $(LDS))
 
 # Each architecture can have specific drivers
 LDFLAGS += $(LIBARCH)
