@@ -6,6 +6,7 @@ ARCH_LDFLAGS = -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 MACH_DIR = $(ADIR)/mach-$(shell echo $(CONFIG_MACH))
 
 ARCH_CFLAGS += -I$(SRC_DIR)/$(MACH_DIR) -DARCH_HAS_BUILTIN_FFS
+ARCH_LDFLAGS += -L$(SRC_DIR)/$(MACH_DIR)
 
 # No boot code for this machine at the moment, we just build libraries.
 BOOT_OBJ = $(ADIR)/init.o
