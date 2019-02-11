@@ -1,5 +1,5 @@
 
-ARCH_CFLAGS = -Os -g -O2 -Werror -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals -D__ets__
+ARCH_CFLAGS = -Os -g -O2 -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals -D__ets__
 
 ARCH_LDFLAGS = -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 
