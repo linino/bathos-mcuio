@@ -47,7 +47,6 @@
  *
  */
 
-#include <stdlib.h>
 #include <stdint.h>
 #include <bathos/stdio.h>
 #include <bathos/bitops.h>
