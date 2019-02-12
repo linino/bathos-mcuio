@@ -4,9 +4,8 @@
  * Author Davide Ciminaghi <ciminaghi@gnudd.com> 2017
  */
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <bathos/string.h>
+#include <bathos/stdio.h>
 #include <bathos/cmdline.h>
 
 struct cmdline_item *_find_item(const char *n)
