@@ -10,6 +10,8 @@ extern int strcmp(const char *s1, const char *s2);
 extern int strncmp(const char *s1, const char *s2, int n);
 extern void *memcpy(void *d, const void *s, int count);
 extern void *memset(void *d, int c, int count);
+extern void *memchr(const void *s, int c, int n);
+extern void *memrchr(const void *s, int c, int n);
 
 #endif
 

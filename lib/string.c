@@ -7,6 +7,7 @@
  * Released according to the GNU GPL version 2
  */
 #include <bathos/string.h>
+#include <bathos/stdio.h>
 #include <stdint.h>
 
 char *strcpy(char * d, char *s)
@@ -113,4 +114,28 @@ void * memset(void *s, int c, int count)
 		*s8++ = c;
 
 	return s;
+}
+
+void *memchr(const void *_s, int _c, int n)
+{
+	unsigned char *s = (void *)_s;
+	unsigned char c = _c;
+	int i;
+
+	for (i = 0; i < n; i++)
+		if (s[i] == c)
+			return &s[i];
+	return NULL;
+}
+
+void *memrchr(const void *_s, int _c, int n)
+{
+	unsigned char *s = (void *)_s;
+	unsigned char c = _c;
+	int i;
+
+	for (i = n - 1; i >= 0; i--)
+		if (s[i] == c)
+			return &s[i];
+	return NULL;
 }
