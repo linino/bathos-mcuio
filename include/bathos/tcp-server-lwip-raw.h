@@ -5,8 +5,11 @@
 
 #ifdef LWIP_TCP
 
-int tcp_server_socket_lwip_raw_init(struct tcp_socket_lwip_raw *,
-				    unsigned short port);
+static inline int tcp_server_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
+						  unsigned short port)
+{
+	return tcp_socket_lwip_raw_init(r, port, 1);
+}
 
 static inline int tcp_server_socket_lwip_raw_send(struct tcp_conn_data *cd,
 						  const void *buf,

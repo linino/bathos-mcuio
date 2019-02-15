@@ -207,8 +207,8 @@ static err_t tcp_conn_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
 	return ERR_OK;
 }
 
-int tcp_server_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
-				    unsigned short port)
+int tcp_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
+			     unsigned short port, int server)
 {
 	err_t err;
 
@@ -222,18 +222,21 @@ int tcp_server_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
 		return -1;
 	}
 	tcp_arg(r->tcp_conn_pcb, r);
-	pr_debug("%s: binding to port %u\n", __func__, port);
-	err = tcp_bind(r->tcp_conn_pcb, IP_ADDR_ANY, port);
-	if (err != ERR_OK) {
-		printf("%s: tcp_bind() to port %u returns error %d\n", __func__, port, err);
-		return -1;
+	if (server) {
+		pr_debug("%s: binding to port %u\n", __func__, port);
+		err = tcp_bind(r->tcp_conn_pcb, IP_ADDR_ANY, port);
+		if (err != ERR_OK) {
+			printf("%s: tcp_bind() to port %u returns error %d\n",
+			       __func__, port, err);
+			return -1;
+		}
+		r->tcp_conn_pcb = tcp_listen(r->tcp_conn_pcb);
+		if (!r->tcp_conn_pcb) {
+			printf("%s: tcp_listen() returns NULL\n", __func__);
+			return -1;
+		}
+		tcp_accept(r->tcp_conn_pcb, tcp_conn_accept);
 	}
-	r->tcp_conn_pcb = tcp_listen(r->tcp_conn_pcb);
-	if (!r->tcp_conn_pcb) {
-		printf("%s: tcp_listen() returns NULL\n", __func__);
-		return -1;
-	}
-	tcp_accept(r->tcp_conn_pcb, tcp_conn_accept);
 	return 0;
 }
 
