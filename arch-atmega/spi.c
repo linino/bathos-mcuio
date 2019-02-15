@@ -58,12 +58,13 @@ static int spi_open(struct bathos_pipe *pipe)
 	return 0;
 }
 
-static void spi_close(struct bathos_pipe *pipe)
+static int spi_close(struct bathos_pipe *pipe)
 {
 	SPCR &= ~(1 << SPIE);
 	SPCR &= ~(1 << SPE);
 	bathos_free_buffer(spi_data.bufrx, SPI_BUF_SIZE);
 	bathos_free_buffer(spi_data.buftx, SPI_BUF_SIZE);
+	return 0;
 }
 
 static int spi_read(struct bathos_pipe *pipe, char *buf, int len)
