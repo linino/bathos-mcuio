@@ -49,7 +49,7 @@ static void tcp_conn_free(struct tcp_conn_data *es)
 
 static void tcp_conn_close(struct tcp_pcb *tpcb, struct tcp_conn_data *es)
 {
-	struct tcp_server_socket_lwip_raw *r = es->raw_socket;
+	struct tcp_socket_lwip_raw *r = es->raw_socket;
 
 	if (tcp_close(tpcb) != ERR_OK) {
 		/*
@@ -80,7 +80,7 @@ static void tcp_conn_close(struct tcp_pcb *tpcb, struct tcp_conn_data *es)
 err_t tcp_conn_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
 	struct tcp_conn_data *es;
-	struct tcp_server_socket_lwip_raw *r;
+	struct tcp_socket_lwip_raw *r;
 	struct pbuf *ptr;
 	int stat = 0;
 
@@ -136,7 +136,7 @@ void tcp_conn_error(void *arg, err_t err)
 static err_t tcp_conn_poll(void *arg, struct tcp_pcb *tpcb)
 {
 	struct tcp_conn_data *es;
-	struct tcp_server_socket_lwip_raw *r;
+	struct tcp_socket_lwip_raw *r;
 
 	es = (struct tcp_conn_data *)arg;
 	if (!es || !es->raw_socket) {
@@ -155,7 +155,7 @@ static err_t tcp_conn_poll(void *arg, struct tcp_pcb *tpcb)
 static err_t tcp_conn_sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
 {
 	struct tcp_conn_data *es;
-	struct tcp_server_socket_lwip_raw *r;
+	struct tcp_socket_lwip_raw *r;
 
 	LWIP_UNUSED_ARG(len);
 
@@ -172,7 +172,7 @@ static err_t tcp_conn_sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
 static err_t tcp_conn_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
 {
 	struct tcp_conn_data *es;
-	struct tcp_server_socket_lwip_raw *r = arg;
+	struct tcp_socket_lwip_raw *r = arg;
 	int stat = 0;
 
 	if ((err != ERR_OK) || (newpcb == NULL) || !r)
@@ -207,7 +207,7 @@ static err_t tcp_conn_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
 	return ERR_OK;
 }
 
-int tcp_server_socket_lwip_raw_init(struct tcp_server_socket_lwip_raw *r,
+int tcp_server_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
 				    unsigned short port)
 {
 	err_t err;
@@ -237,7 +237,7 @@ int tcp_server_socket_lwip_raw_init(struct tcp_server_socket_lwip_raw *r,
 	return 0;
 }
 
-int tcp_server_socket_lwip_raw_fini(struct tcp_server_socket_lwip_raw *r)
+int tcp_server_socket_lwip_raw_fini(struct tcp_socket_lwip_raw *r)
 {
 	if (!r->tcp_conn_pcb) {
 		printf("%s: no socket\n", __func__);
@@ -294,7 +294,7 @@ int tcp_server_socket_lwip_raw_close(struct tcp_conn_data *es)
 /* Like close, but should be synchronous */
 int tcp_server_socket_lwip_raw_abort(struct tcp_conn_data *es)
 {
-	struct tcp_server_socket_lwip_raw *r = es->raw_socket;
+	struct tcp_socket_lwip_raw *r = es->raw_socket;
 	struct tcp_pcb *tpcb = es->pcb;
 
 	tcp_abort(tpcb);

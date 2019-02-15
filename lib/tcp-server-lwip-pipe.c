@@ -25,7 +25,7 @@ static int tcp_server_accept(struct tcp_conn_data *cd)
 	struct bathos_pipe *p = pipe_open("tcp-server-connection",
 					  BATHOS_MODE_INPUT|BATHOS_MODE_OUTPUT,
 					  cd);
-	struct tcp_server_socket_lwip_raw *rs = cd->raw_socket;
+	struct tcp_socket_lwip_raw *rs = cd->raw_socket;
 	struct bathos_pipe *server_pipe = rs->pipe;
 	struct tcp_server_data *data = server_pipe->data;
 
@@ -62,16 +62,16 @@ static void tcp_server_conn_closed(struct tcp_conn_data *cd)
 }
 
 
-static const struct tcp_server_socket_lwip_raw_ops tcp_server_ops = {
+static const struct tcp_socket_lwip_raw_ops tcp_server_ops = {
 	.accept = tcp_server_accept,
 	.recv = tcp_server_recv,
 	.poll = tcp_server_poll,
 	.closed = tcp_server_conn_closed,
 };
 
-static struct tcp_server_socket_lwip_raw tcp_servers[MAX_TCP_SERVERS];
+static struct tcp_socket_lwip_raw tcp_servers[MAX_TCP_SERVERS];
 
-static struct tcp_server_socket_lwip_raw *_new_server(void)
+static struct tcp_socket_lwip_raw *_new_server(void)
 {
 	int i;
 
@@ -84,7 +84,7 @@ static struct tcp_server_socket_lwip_raw *_new_server(void)
 	return NULL;
 }
 
-static void _server_fini(struct tcp_server_socket_lwip_raw *rs)
+static void _server_fini(struct tcp_socket_lwip_raw *rs)
 {
 	rs->ops = NULL;
 }
@@ -93,7 +93,7 @@ static int tcp_server_dev_open(struct bathos_pipe *pipe)
 {
 	int stat;
 	struct tcp_server_data *data = pipe->data;
-	struct tcp_server_socket_lwip_raw *rs;
+	struct tcp_socket_lwip_raw *rs;
 
 	if (!data->accept_event) {
 		printf("%s: accept event is mandatory !\n", __func__);
