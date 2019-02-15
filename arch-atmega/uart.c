@@ -161,18 +161,18 @@ static struct bathos_dev __uart_dev __attribute__((section(".bathos_devices"),
 };
 
 /* baudrate command */
-#define NBAUDRATES 2
-
 struct baudrate {
 	uint32_t val;
 	char *descr; /* needed because printf of val fails for val > 32767 */
 };
 
-static const struct baudrate PROGMEM baud[NBAUDRATES] = {
+static const struct baudrate PROGMEM baud[] = {
 	{125000, "125000"},
 	{250000, "250000"},
 	{1000000, "1000000"},
 };
+
+#define NBAUDRATES ARRAY_SIZE(baud)
 
 static uint8_t baud_idx = 1;
 
