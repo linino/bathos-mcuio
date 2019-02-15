@@ -19,9 +19,9 @@ char *strcpy(char * d, char *s)
 	return res;
 }
 
-int strlen(char *s)
+int strlen(const char *s)
 {
-	char *sc;
+	const char *sc;
 
 	for (sc = s; *sc != '\0'; ++sc)
 		/* nothing */;

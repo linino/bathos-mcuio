@@ -4,7 +4,7 @@
 #if !defined CONFIG_ARCH_ATMEGA
 
 extern char *strcpy(char * d, char *s);
-extern int strlen(char *s);
+extern int strlen(const char *s);
 extern int strnlen(char *s, int count);
 extern int strcmp(const char *s1, const char *s2);
 extern int strncmp(const char *s1, const char *s2, int n);
