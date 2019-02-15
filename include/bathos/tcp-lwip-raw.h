@@ -73,6 +73,12 @@ struct tcp_socket_lwip_raw {
 	void *server_priv;
 };
 
+extern int tcp_socket_lwip_raw_abort(struct tcp_conn_data *);
+extern int tcp_socket_lwip_raw_close(struct tcp_conn_data *);
+extern int tcp_socket_lwip_raw_fini(struct tcp_socket_lwip_raw *r);
+extern int tcp_socket_lwip_raw_send(struct tcp_conn_data *es,
+				    const void *buf, unsigned int len);
+
 #endif /* LWIP_TCP */
 
 #endif /* __TCP_SERVER_LWIP_RAW_H__ */

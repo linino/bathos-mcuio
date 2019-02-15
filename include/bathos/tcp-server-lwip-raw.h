@@ -8,14 +8,27 @@
 int tcp_server_socket_lwip_raw_init(struct tcp_socket_lwip_raw *,
 				    unsigned short port);
 
-int tcp_server_socket_lwip_raw_send(struct tcp_conn_data *,
-				    const void *buf, unsigned int len);
+static inline int tcp_server_socket_lwip_raw_send(struct tcp_conn_data *cd,
+						  const void *buf,
+						  unsigned int len)
+{
+	return tcp_socket_lwip_raw_send(cd, buf, len);
+}
 
-int tcp_server_socket_lwip_raw_close(struct tcp_conn_data *);
+static inline int tcp_server_socket_lwip_raw_close(struct tcp_conn_data *cd)
+{
+	return tcp_socket_lwip_raw_close(cd);
+}
 
-int tcp_server_socket_lwip_raw_abort(struct tcp_conn_data *);
+static inline int tcp_server_socket_lwip_raw_abort(struct tcp_conn_data *cd)
+{
+	return tcp_socket_lwip_raw_abort(cd);
+}
 
-int tcp_server_socket_lwip_raw_fini(struct tcp_socket_lwip_raw *);
+static inline int tcp_server_socket_lwip_raw_fini(struct tcp_socket_lwip_raw *r)
+{
+	return tcp_socket_lwip_raw_fini(r);
+}
 
 #else /* !LWIP_TCP */
 

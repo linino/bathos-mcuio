@@ -237,7 +237,7 @@ int tcp_server_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
 	return 0;
 }
 
-int tcp_server_socket_lwip_raw_fini(struct tcp_socket_lwip_raw *r)
+int tcp_socket_lwip_raw_fini(struct tcp_socket_lwip_raw *r)
 {
 	if (!r->tcp_conn_pcb) {
 		printf("%s: no socket\n", __func__);
@@ -250,8 +250,8 @@ int tcp_server_socket_lwip_raw_fini(struct tcp_socket_lwip_raw *r)
 
 extern void my_lwip_idle(void);
 
-int tcp_server_socket_lwip_raw_send(struct tcp_conn_data *es,
-				    const void *buf, unsigned int len)
+int tcp_socket_lwip_raw_send(struct tcp_conn_data *es,
+			     const void *buf, unsigned int len)
 {
 	err_t stat;
 	uint16_t l;
@@ -284,7 +284,7 @@ int tcp_server_socket_lwip_raw_send(struct tcp_conn_data *es,
 	return stat == ERR_OK ? es->written : -1;
 }
 
-int tcp_server_socket_lwip_raw_close(struct tcp_conn_data *es)
+int tcp_socket_lwip_raw_close(struct tcp_conn_data *es)
 {
 	pr_debug("%s\n", __func__);
 	tcp_conn_close(es->pcb, es);
@@ -292,7 +292,7 @@ int tcp_server_socket_lwip_raw_close(struct tcp_conn_data *es)
 }
 
 /* Like close, but should be synchronous */
-int tcp_server_socket_lwip_raw_abort(struct tcp_conn_data *es)
+int tcp_socket_lwip_raw_abort(struct tcp_conn_data *es)
 {
 	struct tcp_socket_lwip_raw *r = es->raw_socket;
 	struct tcp_pcb *tpcb = es->pcb;
