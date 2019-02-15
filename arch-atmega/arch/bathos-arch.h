@@ -12,7 +12,7 @@
 #define ARCH_IS_HARVARD 1
 
 #include <stddef.h>
-#include <bathos/string.h>
+#include <string.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 

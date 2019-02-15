@@ -5,7 +5,9 @@ LIBBATHOS = lib/libbathos.a
 LIB_OBJS += lib/pipe.o
 LIB_OBJS += lib/buffer_queue.o
 LIB_OBJS += lib/buffer_queue_server.o
+ifneq ($(CONFIG_ARCH_ATMEGA),y)
 LIB_OBJS += lib/string.o
+endif
 LIB_OBJS += lib/stdio.o
 LIB_OBJS += lib/stdlib.o
 LIB_OBJS += lib/ctype.o

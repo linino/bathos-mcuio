@@ -30,7 +30,7 @@ TASK-y ?= task-uart.o
 
 MCU=$(word 1, $(BATHOS_MCU))
 CFLAGS  = -mmcu=$(MCU) -DMCU_$(MCU)=1 -funsigned-char -funsigned-bitfields \
--ffunction-sections -fpack-struct -fshort-enums
+-ffunction-sections -fpack-struct -fshort-enums -DARCH_HAS_BUILTIN_FFS
 LDFLAGS = -nostdlib -Wl,-Map=bathos.map -mmcu=$(MCU)
 LDS = $(ADIR)/bathos.lds
 ASFLAGS = $(CFLAGS)
