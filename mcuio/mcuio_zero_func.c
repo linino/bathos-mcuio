@@ -20,7 +20,7 @@ const char PROGMEM zero_ro_contents[8] = "mcuio";
 
 const unsigned int PROGMEM zero_ro_contents_length = sizeof(zero_ro_contents);
 
-const char PROGMEM zero_rw_contents[8] = "deadbeef";
+char zero_rw_contents[8] = "deadbeef";
 
 const unsigned int PROGMEM zero_rw_contents_length = sizeof(zero_rw_contents);
 
