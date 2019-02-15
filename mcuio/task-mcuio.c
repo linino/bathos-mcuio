@@ -145,7 +145,7 @@ static const struct mcuio_range *__lookup_range(struct mcuio_function *f,
 
 	/* FIXME: SMARTER SEARCH */
 	for (i = 0; i < f->nranges; i++) {
-		unsigned short l;
+		uint16_t l;
 		int end;
 
 		__get_range(f, i, r);
