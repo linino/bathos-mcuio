@@ -8,7 +8,7 @@
 #include <bathos/bathos.h>
 #include <bathos/stdio.h>
 #include <generated/autoconf.h>
-#include <bathos/tcp-server-lwip-raw.h>
+#include <bathos/tcp-lwip-raw.h>
 
 
 #ifdef LWIP_TCP
