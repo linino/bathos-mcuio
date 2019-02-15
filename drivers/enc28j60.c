@@ -327,8 +327,8 @@ int enc28_recv(struct enc28_dev *dev, u8 *packet, int maxlen)
 	/* Read in the preamble: next packet pointer and status vector */
 	__enc28_rd_buf(dev, rxstat, sizeof(rxstat));
 
-	next = rxstat[0] | (rxstat[1]<<16);
-	len = rxstat[2] | (rxstat[3]<<16);
+	next = rxstat[0] | (((u32)rxstat[1])<<16);
+	len = rxstat[2] | (((u32)rxstat[3])<<16);
 	len -= 4; /* ignore crc */
 	if (len > maxlen)
 		len = maxlen;
