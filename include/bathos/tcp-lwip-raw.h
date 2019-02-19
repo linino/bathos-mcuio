@@ -79,6 +79,7 @@ extern int tcp_socket_lwip_raw_fini(struct tcp_socket_lwip_raw *r);
 extern int tcp_socket_lwip_raw_send(struct tcp_conn_data *es,
 				    const void *buf, unsigned int len);
 extern int tcp_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
+				    struct ip_addr * ipaddr,
 				    unsigned short port, int server);
 
 #endif /* LWIP_TCP */

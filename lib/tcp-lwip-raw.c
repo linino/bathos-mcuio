@@ -208,6 +208,7 @@ static err_t tcp_conn_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
 }
 
 int tcp_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
+			     struct ip_addr * ipaddr,
 			     unsigned short port, int server)
 {
 	err_t err;
@@ -223,8 +224,9 @@ int tcp_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
 	}
 	tcp_arg(r->tcp_conn_pcb, r);
 	if (server) {
+		/* server */
 		pr_debug("%s: binding to port %u\n", __func__, port);
-		err = tcp_bind(r->tcp_conn_pcb, IP_ADDR_ANY, port);
+		err = tcp_bind(r->tcp_conn_pcb, ipaddr, port);
 		if (err != ERR_OK) {
 			printf("%s: tcp_bind() to port %u returns error %d\n",
 			       __func__, port, err);
