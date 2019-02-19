@@ -24,6 +24,7 @@ LIB_OBJS += lib/cmdline.o
 ifeq ($(CONFIG_HAVE_LWIP),y)
 LIB_OBJS += lib/tcp-lwip-raw.o
 LIB_OBJS += lib/tcp-server-lwip-pipe.o
+LIB_OBJS += lib/tcp-client-lwip-pipe.o
 LIB_OBJS += lib/tcp-server-connection-dev.o
 endif
 
