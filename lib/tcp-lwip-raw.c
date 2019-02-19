@@ -169,7 +169,8 @@ static err_t tcp_conn_sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
 	return ERR_OK;
 }
 
-static err_t tcp_conn_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
+static err_t tcp_conn_established(void *arg, struct tcp_pcb *newpcb, err_t err,
+				  int server)
 {
 	struct tcp_conn_data *es;
 	struct tcp_socket_lwip_raw *r = arg;
@@ -191,8 +192,10 @@ static err_t tcp_conn_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
 	es->pcb = newpcb;
 	es->raw_socket = r;
 	es->acknowledged = es->written = 0;
-	if (r->ops->accept)
+	if (server && r->ops->accept)
 		stat = r->ops->accept(es);
+	if (!server && r->ops->connected)
+		stat = r->ops->connected(es);
 	if (stat) {
 		free_connection(es);
 		return ERR_MEM;
@@ -205,6 +208,17 @@ static err_t tcp_conn_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
 	tcp_sent(newpcb, tcp_conn_sent);
 	tcp_nagle_disable(newpcb);
 	return ERR_OK;
+}
+
+static err_t tcp_conn_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
+{
+	return tcp_conn_established(arg, newpcb, err, 1);
+}
+
+static err_t tcp_socket_lwip_connected(void * arg, struct tcp_pcb *tpcb,
+				       err_t err)
+{
+	return tcp_conn_established(arg, tpcb, err, 0);
 }
 
 int tcp_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
@@ -238,6 +252,15 @@ int tcp_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
 			return -1;
 		}
 		tcp_accept(r->tcp_conn_pcb, tcp_conn_accept);
+	} else {
+		/* client */
+		pr_debug("%s: connecting\n");
+		err = tcp_connect(r->tcp_conn_pcb, ipaddr, port,
+				  tcp_socket_lwip_connected);
+		if (err != ERR_OK) {
+			printf("%s: tcp_connect() returns error\n", __func__);
+			return -1;
+		}
 	}
 	return 0;
 }
