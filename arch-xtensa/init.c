@@ -8,6 +8,7 @@
 #include <bathos/jiffies.h>
 #include <bathos/event.h>
 #include <bathos/tcp-server-connection-dev.h>
+#include <bathos/tcp-client-pipe.h>
 
 
 #define BATHOS_QUEUE_LEN 16
@@ -60,6 +61,12 @@ static struct bathos_dev tcp_connection_dev
 __attribute__((section(".bathos_devices"), aligned(4), used)) = {
 	.name = "tcp-server-connection",
 	.ops = &tcp_server_connection_dev_ops,
+};
+
+static struct bathos_dev tcp_client_dev
+__attribute__((section(".bathos_devices"), aligned(4), used)) = {
+	.name = "tcp-client-connection",
+	.ops = &tcp_client_dev_ops,
 };
 
 extern const struct bathos_dev_ops tcp_server_dev_ops;
