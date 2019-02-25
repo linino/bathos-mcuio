@@ -26,6 +26,8 @@ LIB_OBJS += lib/tcp-lwip-raw.o
 LIB_OBJS += lib/tcp-server-lwip-pipe.o
 LIB_OBJS += lib/tcp-client-lwip-pipe.o
 LIB_OBJS += lib/tcp-server-connection-dev.o
+LIB_OBJS += lib/mqtt.o
+LIB_OBJS += lib/mqtt_pal.o
 endif
 
 $(LIBBATHOS): $(LIB_OBJS)
