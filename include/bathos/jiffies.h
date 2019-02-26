@@ -11,6 +11,11 @@
   extern volatile unsigned long jiffies;
 #endif
 
+#ifndef time_delta
+#define time_delta(a,b)				\
+	((long)b - (long)a)
+#endif
+
 /* The following ones come from the kernel, but simplified */
 #ifndef time_after
 #define time_after(a,b)		\
