@@ -505,8 +505,8 @@ ssize_t __mqtt_send(struct mqtt_client *client)
 			resend = 1;
 		} else if (msg->state == MQTT_QUEUED_AWAITING_ACK) {
 			/* check for timeout */
-			if (MQTT_PAL_TIME() > msg->time_sent +
-			    client->response_timeout) {
+			if (time_after(MQTT_PAL_TIME(), msg->time_sent +
+				       client->response_timeout)) {
 				resend = 1;
 				client->number_of_timeouts += 1;
 			}
@@ -598,7 +598,7 @@ ssize_t __mqtt_send(struct mqtt_client *client)
 	/* check for keep-alive */
 	mqtt_pal_time_t keep_alive_timeout =
 		client->time_of_last_send + ((client->keep_alive * 3) >> 2);
-	if (MQTT_PAL_TIME() > keep_alive_timeout) {
+	if (time_after(MQTT_PAL_TIME(), keep_alive_timeout)) {
 		ssize_t rv = __mqtt_ping(client);
 		if (rv != MQTT_OK) {
 			client->error = rv;
