@@ -27,6 +27,14 @@
 
 typedef void (*prc)(void** state, struct mqtt_response_publish *publish);
 
+static inline void update_response_time(struct mqtt_client *client,
+					struct mqtt_queued_message *msg)
+{
+	client->typical_response_time =
+		((7 * (client->typical_response_time)) >> 3) +
+		(time_delta(MQTT_PAL_TIME(), msg->time_sent) >> 3);
+}
+
 /**
  * @file
  * @brief Implements the functionality of MQTT-C.
@@ -119,7 +127,7 @@ enum MQTTErrors mqtt_init(struct mqtt_client *client,
 	client->response_timeout = 10*HZ;
 	client->number_of_timeouts = 0;
 	client->number_of_keep_alives = 0;
-	client->typical_response_time = -1.0;
+	client->typical_response_time = (unsigned long)-1;
 	client->publish_response_callback = publish_response_callback;
 
 	client->inspector_callback = NULL;
@@ -150,7 +158,7 @@ void mqtt_init_reconnect(struct mqtt_client *client,
 	client->response_timeout = 10*HZ;
 	client->number_of_timeouts = 0;
 	client->number_of_keep_alives = 0;
-	client->typical_response_time = -1.0;
+	client->typical_response_time = (unsigned long)-1;
 	client->publish_response_callback = publish_response_callback;
 
 	client->inspector_callback = NULL;
@@ -589,8 +597,7 @@ ssize_t __mqtt_send(struct mqtt_client *client)
 
 	/* check for keep-alive */
 	mqtt_pal_time_t keep_alive_timeout =
-		client->time_of_last_send +
-		(mqtt_pal_time_t) ((float) (client->keep_alive) * 0.75);
+		client->time_of_last_send + ((client->keep_alive * 3) >> 2);
 	if (MQTT_PAL_TIME() > keep_alive_timeout) {
 		ssize_t rv = __mqtt_ping(client);
 		if (rv != MQTT_OK) {
@@ -700,7 +707,7 @@ ssize_t __mqtt_recv(struct mqtt_client *client)
 			msg->state = MQTT_QUEUED_COMPLETE;
 			/* initialize typical response time */
 			client->typical_response_time =
-				(double) (MQTT_PAL_TIME() - msg->time_sent);
+				time_delta(MQTT_PAL_TIME(), msg->time_sent);
 			/* check that connection was successful */
 			if (response.decoded.connack.return_code !=
 			    MQTT_CONNACK_ACCEPTED) {
@@ -750,10 +757,7 @@ ssize_t __mqtt_recv(struct mqtt_client *client)
 				return MQTT_ERROR_ACK_OF_UNKNOWN;
 			}
 			msg->state = MQTT_QUEUED_COMPLETE;
-			/* update response time */
-			client->typical_response_time = 0.875 *
-				(client->typical_response_time) + 0.125 *
-				(double) (MQTT_PAL_TIME() - msg->time_sent);
+			update_response_time(client, msg);
 			break;
 		case MQTT_CONTROL_PUBREC:
 			/* check if this is a duplicate */
@@ -769,11 +773,7 @@ ssize_t __mqtt_recv(struct mqtt_client *client)
 				return MQTT_ERROR_ACK_OF_UNKNOWN;
 			}
 			msg->state = MQTT_QUEUED_COMPLETE;
-			/* update response time */
-			client->typical_response_time = 0.875 *
-				(client->typical_response_time) +
-				0.125 * (double) (MQTT_PAL_TIME() -
-						  msg->time_sent);
+			update_response_time(client, msg);
 			/* stage PUBREL */
 			rv = __mqtt_pubrel(client,
 					   response.decoded.pubrec.packet_id);
@@ -793,11 +793,7 @@ ssize_t __mqtt_recv(struct mqtt_client *client)
 				return MQTT_ERROR_ACK_OF_UNKNOWN;
 			}
 			msg->state = MQTT_QUEUED_COMPLETE;
-			/* update response time */
-			client->typical_response_time = 0.875 *
-				(client->typical_response_time) +
-				0.125 * (double) (MQTT_PAL_TIME() -
-						  msg->time_sent);
+			update_response_time(client, msg);
 			/* stage PUBCOMP */
 			rv = __mqtt_pubcomp(client,
 					    response.decoded.pubrec.packet_id);
@@ -817,11 +813,7 @@ ssize_t __mqtt_recv(struct mqtt_client *client)
 				return MQTT_ERROR_ACK_OF_UNKNOWN;
 			}
 			msg->state = MQTT_QUEUED_COMPLETE;
-			/* update response time */
-			client->typical_response_time = 0.875 *
-				(client->typical_response_time) +
-				0.125 * (double) (MQTT_PAL_TIME() -
-						  msg->time_sent);
+			update_response_time(client, msg);
 			break;
 		case MQTT_CONTROL_SUBACK:
 			/* release associated SUBSCRIBE */
@@ -833,11 +825,7 @@ ssize_t __mqtt_recv(struct mqtt_client *client)
 				return MQTT_ERROR_ACK_OF_UNKNOWN;
 			}
 			msg->state = MQTT_QUEUED_COMPLETE;
-			/* update response time */
-			client->typical_response_time = 0.875 *
-				(client->typical_response_time) +
-				0.125 * (double) (MQTT_PAL_TIME() -
-						  msg->time_sent);
+			update_response_time(client, msg);
 			/*
 			 * check that subscription was successful (not
 			 * currently only one subscribe at a time)
@@ -860,11 +848,7 @@ ssize_t __mqtt_recv(struct mqtt_client *client)
 				return MQTT_ERROR_ACK_OF_UNKNOWN;
 			}
 			msg->state = MQTT_QUEUED_COMPLETE;
-			/* update response time */
-			client->typical_response_time = 0.875 *
-				(client->typical_response_time) +
-				0.125 * (double) (MQTT_PAL_TIME() -
-						  msg->time_sent);
+			update_response_time(client, msg);
 			break;
 		case MQTT_CONTROL_PINGRESP:
 			/* release associated PINGREQ */
@@ -876,11 +860,7 @@ ssize_t __mqtt_recv(struct mqtt_client *client)
 				return MQTT_ERROR_ACK_OF_UNKNOWN;
 			}
 			msg->state = MQTT_QUEUED_COMPLETE;
-			/* update response time */
-			client->typical_response_time = 0.875 *
-				(client->typical_response_time) +
-				0.125 * (double) (MQTT_PAL_TIME() -
-						  msg->time_sent);
+			update_response_time(client, msg);
 			break;
 		default:
 			client->error = MQTT_ERROR_MALFORMED_RESPONSE;
