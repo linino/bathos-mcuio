@@ -22,24 +22,39 @@
   SOFTWARE.
 */
 
+#include <bathos/bathos.h>
+#include <bathos/pipe.h>
 #include <bathos/mqtt.h>
 
-/**
- * @file
- * @brief Implements @ref mqtt_pal_sendall and @ref mqtt_pal_recvall and
- *        any platform-specific helpers you'd like.
- * @cond Doxygen_Suppress
+/*
+ * Send all @buf or return error
  */
 ssize_t mqtt_pal_sendall(mqtt_pal_socket_handle fd, const void* buf,
 			 size_t len, int flags)
 {
-	return -1;
+	size_t sent;
+	int stat;
+
+	for (sent = 0; sent < len; sent += stat) {
+		stat = pipe_write(fd, buf, len);
+		if (stat < 0)
+			return MQTT_ERROR_SOCKET_ERROR;
+	}
+	return sent;
 }
 
+/*
+ * Receive everything available
+ */
 ssize_t mqtt_pal_recvall(mqtt_pal_socket_handle fd, void* buf, size_t bufsz,
 			 int flags)
 {
-	return -1;
-}
+	struct bathos_pipe *pipe = fd;
+	int ret;
 
-/** @endcond */
+	ret = pipe_read(fd, buf, bufsz);
+	if (ret == -EAGAIN)
+		/* Nothing available */
+		ret = 0;
+	return ret;
+}
