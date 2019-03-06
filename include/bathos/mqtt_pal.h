@@ -70,9 +70,9 @@ SOFTWARE.
 #include <stdint.h>
 #include <stdarg.h>
 #include <limits.h>
-#include <bathos/string.h>
 #include <bathos/stdio.h>
 #include <bathos/jiffies.h>
+#include <bathos/endian.h>
 
 typedef unsigned int size_t;
 typedef int ssize_t;
@@ -101,13 +101,13 @@ static inline mqtt_pal_time_t MQTT_PAL_TIME(void)
 static inline uint16_t MQTT_PAL_NTOHS(uint16_t n)
 {
 	/* FIX THIS */
-	return n;
+	return to_be16(n);
 }
 
 static inline uint16_t MQTT_PAL_HTONS(uint16_t n)
 {
 	/* FIX THIS */
-	return n;
+	return to_be16(n);
 }
 
 /**
