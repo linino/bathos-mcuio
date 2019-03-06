@@ -97,6 +97,7 @@ err_t tcp_conn_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 	}
 
 	if (!p) {
+		pr_debug("%s: remote end closed\n", __func__);
 		/* remote host closed connection */
 		es->state = ES_CLOSING;
 		if (r->ops->poll)
@@ -146,8 +147,10 @@ static err_t tcp_conn_poll(void *arg, struct tcp_pcb *tpcb)
 	}
 
 	r = es->raw_socket;
-	if (es->must_close || !r->ops->poll || !r->ops->poll(es))
+	if (es->must_close || !r->ops->poll || !r->ops->poll(es)) {
+		pr_debug("%s: closing\n", __func__);
 		tcp_conn_close(tpcb, es);
+	}
 
 	return ERR_OK;
 }
@@ -176,6 +179,8 @@ static err_t tcp_conn_established(void *arg, struct tcp_pcb *newpcb, err_t err,
 	struct tcp_socket_lwip_raw *r = arg;
 	int stat = 0;
 
+	pr_debug("%s %d, err = %d, newpcb = %p, r = %p\n", __func__, __LINE__,
+		 err, newpcb, r);
 	if ((err != ERR_OK) || (newpcb == NULL) || !r)
 		return ERR_VAL;
 	/*
@@ -254,7 +259,8 @@ int tcp_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
 		tcp_accept(r->tcp_conn_pcb, tcp_conn_accept);
 	} else {
 		/* client */
-		pr_debug("%s: connecting\n");
+		pr_debug("%s: connecting to %s\n", __func__,
+			 ipaddr_ntoa(ipaddr));
 		err = tcp_connect(r->tcp_conn_pcb, ipaddr, port,
 				  tcp_socket_lwip_connected);
 		if (err != ERR_OK) {
