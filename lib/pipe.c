@@ -156,7 +156,7 @@ int pipe_read(struct bathos_pipe *pipe, char *buf, int len)
 	int stat;
 	struct bathos_dev_ops __ops, *ops;
 
-	if (!pipe->dev) {
+	if (!pipe || !pipe->dev) {
 		bathos_errno = EBADF;
 		return -1;
 	}
