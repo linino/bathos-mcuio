@@ -77,4 +77,12 @@ __attribute__((section(".bathos_devices"), aligned(4), used)) = {
 	.ops = &tcp_server_dev_ops,
 };
 
+extern const struct bathos_dev_ops mqtt_client_dev_ops;
+
+static struct bathos_dev mqtt_dev
+__attribute__((section(".bathos_devices"), aligned(4), used)) = {
+	.name = "mqtt-dev",
+	.ops = &mqtt_client_dev_ops,
+};
+
 #endif /* CONFIG_ENABLE_TCP_SERVER_DEV */
