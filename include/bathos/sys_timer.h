@@ -1,7 +1,8 @@
 #ifndef __SYS_TIMER_H__
 #define __SYS_TIMER_H__
 
-extern int sys_timer_enqueue_tick(unsigned long jif, void *data);
+extern int sys_timer_enqueue_tick(unsigned long jif, void *data,
+				  const struct event *);
 
 extern int sys_timer_get_next_tick(unsigned long *, void **data);
 

@@ -17,7 +17,7 @@ static int pts_init(void)
 	}
 	for (p = __task_begin; p < __task_end; p++) {
 		p->release += now + HZ;
-		if (sys_timer_enqueue_tick(p->release - now, p) < 0)
+		if (sys_timer_enqueue_tick(p->release - now, p, NULL) < 0)
 			return -1;
 	}
 	return 0;
@@ -34,7 +34,7 @@ static void pts_handle(struct event_handler_data *d)
 	now = jiffies;
 	if (time_before_eq(p->release, now))
 		p->release = now + 1;
-	sys_timer_enqueue_tick(p->release - now, p);
+	sys_timer_enqueue_tick(p->release - now, p, NULL);
 }
 
 declare_event_handler(sys_timer_tick, NULL, pts_handle, NULL);

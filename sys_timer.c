@@ -24,6 +24,7 @@ static struct list_head scheduled_ticks;
 struct scheduled_tick {
 	unsigned long when;
 	void *data;
+	const struct event *evt;
 	struct list_head list;
 };
 
@@ -52,15 +53,18 @@ static void free_tick(struct scheduled_tick *t)
 	bathos_free_buffer(t, sizeof(*t));
 }
 
-int sys_timer_enqueue_tick(unsigned long evt_jiffies, void *data)
+int sys_timer_enqueue_tick(unsigned long evt_jiffies, void *data,
+			   const struct event *_evt)
 {
 	struct scheduled_tick *t, *ptr;
+	const struct event *evt = _evt ? _evt : &event_name(sys_timer_tick);
 	int flags;
 	t = alloc_tick();
 	if (!t)
 		return -ENOMEM;
 	t->when = jiffies + evt_jiffies;
 	t->data = data;
+	t->evt = evt;
 	interrupt_disable(flags);
 	if (list_empty(&scheduled_ticks)) {
 		list_add(&t->list, &scheduled_ticks);
@@ -87,7 +91,7 @@ void on_hw_timer_tick(struct event_handler_data *d)
 	list_for_each_entry_safe(next, tmp, &scheduled_ticks, list) {
 		if (time_after(next->when, jiffies))
 			break;
-		trigger_event(&event_name(sys_timer_tick), next->data);
+		trigger_event(next->evt, next->data);
 		if (!list_is_last(&next->list, &scheduled_ticks)) {
 			struct scheduled_tick *t;
 			t = list_entry(next->list.next,
