@@ -162,65 +162,22 @@ extern void ets_task(void (*t)(struct ETSEventTag *), int, struct ETSEventTag *,
 		     int);
 
 
-static void wifi_callback(System_Event_t *evt)
+static void wifi_connected_event_handler(struct event_handler_data *ed)
 {
 	static struct ETSEventTag *queue;
 
-	printf( "%s: %d\n", __FUNCTION__, evt->event );
-	switch ( evt->event )
-	{
-	case EVENT_STAMODE_CONNECTED:
-	{
-		printf("connect to ssid %s, channel %d\n",
-		       evt->event_info.connected.ssid,
-		       evt->event_info.connected.channel);
-		queue = bathos_alloc_buffer(sizeof(struct ETSEventTag) *
-					    QUEUE_LEN);
-		if (!queue) {
-			printf("could not allocate queue\n");
-			wifi_station_disconnect();
-			return;
-		}
-		ets_task(raw_input_task, RAW_INPUT_TASK_PRIO, queue, QUEUE_LEN);
-		break;
+	queue = bathos_alloc_buffer(sizeof(struct ETSEventTag) * QUEUE_LEN);
+	if (!queue) {
+		printf("could not allocate queue\n");
+		return;
 	}
-
-	case EVENT_STAMODE_DISCONNECTED:
-	{
-		printf("disconnect from ssid %s, reason %d\n",
-		       evt->event_info.disconnected.ssid,
-		       evt->event_info.disconnected.reason);
-		break;
-	}
-
-	case EVENT_STAMODE_GOT_IP:
-	{
-		printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR,
-		       IP2STR(&evt->event_info.got_ip.ip),
-		       IP2STR(&evt->event_info.got_ip.mask),
-		       IP2STR(&evt->event_info.got_ip.gw));
-		printf("\n");
-		break;
-	}
-	default:
-	{
-		break;
-	}
-	}
+	ets_task(raw_input_task, RAW_INPUT_TASK_PRIO, queue, QUEUE_LEN);
 }
+declare_event_handler(esp8266_wifi_connected, NULL,
+		      wifi_connected_event_handler, NULL);
 
 static int esp8266_wlan_async_open(void *_priv)
 {
-	static struct station_config config;
-
-	/* Init wifi */
-	wifi_station_set_hostname(CONFIG_ESP8266_STATION_HOSTNAME);
-	wifi_set_opmode_current(STATION_MODE);
-	config.bssid_set = 0;
-	memcpy(&config.ssid, CONFIG_ESP8266_ESSID, 32);
-	memcpy(&config.password, CONFIG_ESP8266_PASSWD, 64);
-	wifi_station_set_config(&config);
-	wifi_set_event_handler_cb(wifi_callback);
 	return 0;
 }
 
