@@ -62,6 +62,8 @@ struct tcp_socket_lwip_raw_ops {
 	int (*poll)(struct tcp_conn_data *);
 	/* Invoked on actual connection close */
 	void (*closed)(struct tcp_conn_data *);
+	/* Invoked on connection error */
+	void (*error)(struct tcp_conn_data *, int error);
 };
 
 struct tcp_socket_lwip_raw {

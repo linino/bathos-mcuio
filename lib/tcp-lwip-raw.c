@@ -125,11 +125,17 @@ err_t tcp_conn_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 void tcp_conn_error(void *arg, err_t err)
 {
 	struct tcp_conn_data *es;
-
-	LWIP_UNUSED_ARG(err);
+	struct tcp_socket_lwip_raw *r;
 
 	es = (struct tcp_conn_data *)arg;
 	pr_debug("%s\n", __func__);
+
+	if (!es || !es->raw_socket)
+		return;
+	r = es->raw_socket;
+
+	if (r->ops->error)
+		r->ops->error(es, err);
 
 	tcp_conn_free(es);
 }
