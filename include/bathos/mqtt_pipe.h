@@ -26,6 +26,7 @@ struct mqtt_client_data {
 	unsigned int nbufs;
 	unsigned int bufsize;
 	const struct event *connected_event;
+	const struct event *connection_error_event;
 	const struct event *published_event;
 	const struct event *available_event;
 };

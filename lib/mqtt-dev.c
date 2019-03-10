@@ -43,6 +43,7 @@ struct mqtt_bathos_client {
 declare_event(mqtt_client_setup);
 declare_event(mqtt_client_done);
 declare_event(mqtt_broker_connected);
+declare_event(mqtt_broker_connection_error);
 declare_event(mqtt_sync_event);
 
 static struct list_head mqtt_free_clients;
@@ -98,6 +99,16 @@ static void mqtt_broker_connected_event_handler(struct event_handler_data *ed)
 }
 declare_event_handler(mqtt_broker_connected, NULL,
 		      mqtt_broker_connected_event_handler, NULL);
+
+static void
+mqtt_broker_connection_error_event_handler(struct event_handler_data *ed)
+{
+	struct mqtt_bathos_client *client = ed->data;
+
+	trigger_event(client->cdata->connection_error_event, client->cdata);
+}
+declare_event_handler(mqtt_broker_connection_error, NULL,
+		      mqtt_broker_connection_error_event_handler, NULL);
 
 static void mqtt_sync_event_handler(struct event_handler_data *ed)
 {
@@ -163,6 +174,9 @@ static struct mqtt_bathos_client *_new_client(struct bathos_pipe *pipe)
 	INIT_LIST_HEAD(&out->subscribe_queue);
 	tcp_cdata->connected_event = &event_name(mqtt_broker_connected);
 	tcp_cdata->connected_event_data = out;
+	tcp_cdata->connection_error_event =
+	    &event_name(mqtt_broker_connection_error);
+	tcp_cdata->connection_error_event_data = out;
 	out->cdata = cdata;
 	out->c.publish_response_callback_state = out;
 	out->c.inspector_callback = _inspector_cb;
