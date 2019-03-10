@@ -20,6 +20,10 @@ struct tcp_client_data {
 	const struct event *connected_event;
 	/* Data to be passed with a connected_event */
 	void *connected_event_data;
+	/* Invoked on connection error */
+	const struct event *connection_error_event;
+	/* Data to be passed with a connection_error_event */
+	void *connection_error_event_data;
 };
 
 const struct bathos_dev_ops tcp_client_dev_ops;

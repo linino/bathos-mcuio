@@ -84,12 +84,22 @@ static void tcp_client_conn_closed(struct tcp_conn_data *cd)
 	tcp_client_socket_lwip_raw_fini(cd->raw_socket);
 }
 
+static void tcp_client_conn_error(struct tcp_conn_data *cd, int error)
+{
+	struct tcp_socket_lwip_raw *rs = cd->raw_socket;
+	struct tcp_client_data *data = rs->pipe->data;
+
+	if (data->connection_error_event)
+		trigger_event(data->connection_error_event,
+			      data->connection_error_event_data);
+}
 
 static const struct tcp_socket_lwip_raw_ops tcp_client_ops = {
 	.connected = tcp_client_connected,
 	.recv = tcp_client_recv,
 	.poll = tcp_client_poll,
 	.closed = tcp_client_conn_closed,
+	.error = tcp_client_conn_error,
 };
 
 static const struct bathos_ll_dev_ops ll_ops = {
