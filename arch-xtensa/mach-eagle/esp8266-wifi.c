@@ -16,11 +16,12 @@
 #include <osapi.h>
 #include <user_interface.h>
 #include <netif/wlan_lwip_if.h>
+#include <bathos/wifi.h>
+#include <bathos/netif.h>
 #include <mach/esp8266-wifi.h>
 
-declare_event(esp8266_wifi_connected);
-declare_event(esp8266_wifi_disconnected);
-declare_event(esp8266_wifi_got_ip);
+static struct wifi_connected_event_data ced;
+static struct wifi_disconnected_event_data ded;
 
 declare_event(netif_up);
 declare_event(netif_down);
@@ -36,7 +37,10 @@ static void wifi_callback(System_Event_t *evt)
 		printf("connect to ssid %s, channel %d\n",
 		       evt->event_info.connected.ssid,
 		       evt->event_info.connected.channel);
-		trigger_event(&event_name(esp8266_wifi_connected), evt);
+		strncpy(ced.ssid, evt->event_info.connected.ssid,
+			MAX_SSID_LENGTH);
+		ced.channel = evt->event_info.connected.channel;
+		trigger_event(&event_name(wifi_connected), &ced);
 		break;
 	}
 
@@ -45,7 +49,11 @@ static void wifi_callback(System_Event_t *evt)
 		printf("disconnect from ssid %s, reason %d\n",
 		       evt->event_info.disconnected.ssid,
 		       evt->event_info.disconnected.reason);
-		trigger_event(&event_name(esp8266_wifi_disconnected), evt);
+		strncpy(ded.ssid, evt->event_info.connected.ssid,
+			MAX_SSID_LENGTH);
+		ded.reason = evt->event_info.disconnected.reason;
+		trigger_event(&event_name(wifi_disconnected), &ded);
+		trigger_event(&event_name(netif_down), NULL);
 		break;
 	}
 
@@ -56,7 +64,7 @@ static void wifi_callback(System_Event_t *evt)
 		       IP2STR(&evt->event_info.got_ip.mask),
 		       IP2STR(&evt->event_info.got_ip.gw));
 		printf("\n");
-		trigger_event(&event_name(esp8266_wifi_got_ip), evt);
+		trigger_event(&event_name(netif_up), evt);
 		break;
 	}
 	default:
