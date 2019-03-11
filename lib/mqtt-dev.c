@@ -117,6 +117,7 @@ static void mqtt_sync_event_handler(struct event_handler_data *ed)
 {
 	struct mqtt_bathos_client *client = ed->data;
 	int stat;
+	enum MQTTErrors err;
 
 	if (!client) {
 		printf("%s: no pointer to client\n", __func__);
@@ -127,7 +128,10 @@ static void mqtt_sync_event_handler(struct event_handler_data *ed)
 		list_move(&client->list, &mqtt_free_clients);
 		return;
 	}
-	mqtt_sync(&client->c);
+	err = mqtt_sync(&client->c);
+	if (err != MQTT_OK)
+		trigger_event(client->cdata->connection_error_event, client);
+
 	/* Next sync in 200ms */
 	stat = sys_timer_enqueue_tick(HZ / 50, client,
 				      &event_name(mqtt_sync_event));
