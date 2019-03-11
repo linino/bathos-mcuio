@@ -18,27 +18,12 @@
 #include <bathos/sys_timer.h>
 #include <bathos/mqtt.h>
 
+#include "mqtt-client-internal.h"
+
 #define MAX_CLIENTS 4
 
 #define MQTT_SENDBUF_SIZE 512
 #define MQTT_RECVBUF_SIZE 512
-
-struct mqtt_bathos_client {
-	uint8_t *sendbuf;
-	uint8_t *recvbuf;
-	struct mqtt_client c;
-	/* Related mqtt_pipe */
-	struct bathos_pipe *mqtt_pipe;
-	/* Related tcp/ip client pipe */
-	struct bathos_pipe *tcpip_pipe;
-	/* Pointer to buffer queue area (client side) */
-	uint8_t *buffer_area;
-	struct mqtt_client_data *cdata;
-	int closing;
-	/* Subscribe queue */
-	struct list_head subscribe_queue;
-	struct list_head list;
-};
 
 declare_event(mqtt_client_setup);
 declare_event(mqtt_client_done);
