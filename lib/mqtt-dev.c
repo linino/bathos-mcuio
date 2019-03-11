@@ -98,7 +98,7 @@ static void mqtt_broker_connected_event_handler(struct event_handler_data *ed)
 				      &event_name(mqtt_sync_event));
 	if (stat)
 		printf("%s: could not setup sync event\n", __func__);
-	trigger_event(client->cdata->connected_event, client->cdata);
+	trigger_event(client->cdata->connected_event, client);
 }
 declare_event_handler(mqtt_broker_connected, NULL,
 		      mqtt_broker_connected_event_handler, NULL);
@@ -108,7 +108,7 @@ mqtt_broker_connection_error_event_handler(struct event_handler_data *ed)
 {
 	struct mqtt_bathos_client *client = ed->data;
 
-	trigger_event(client->cdata->connection_error_event, client->cdata);
+	trigger_event(client->cdata->connection_error_event, client);
 }
 declare_event_handler(mqtt_broker_connection_error, NULL,
 		      mqtt_broker_connection_error_event_handler, NULL);
