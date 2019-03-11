@@ -90,6 +90,9 @@ static void mqtt_broker_connected_event_handler(struct event_handler_data *ed)
 	int stat;
 	struct mqtt_bathos_client *client = ed->data;
 
+	if (client->mqtt_pipe->mode & BATHOS_MODE_INPUT)
+		mqtt_subscribe(&client->c, client->cdata->topic, 0);
+
 	/* 200ms */
 	stat = sys_timer_enqueue_tick(HZ / 50, client,
 				      &event_name(mqtt_sync_event));
@@ -295,9 +298,6 @@ static int mqtt_client_async_open(void *_client)
 		printf("%s: mqtt_connect() returned error\n", __func__);
 		return -EINVAL;
 	}
-
-	if (client->mqtt_pipe->mode & BATHOS_MODE_INPUT)
-		mqtt_subscribe(&client->c, cdata->topic, 0);
 
 	return 0;
 }
