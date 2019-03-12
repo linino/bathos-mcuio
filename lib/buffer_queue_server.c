@@ -77,3 +77,11 @@ void bathos_bqueue_server_buf_processed(struct bathos_bdescr *b)
 
 	trigger_event(data->processed_event, b);
 }
+
+void bathos_bqueue_server_buf_processed_immediate(struct bathos_bdescr *b)
+{
+	struct bathos_bqueue *q = b->queue;
+	struct bathos_bqueue_data *data = &q->data;
+
+	trigger_event_immediate(data->processed_event, b);
+}
