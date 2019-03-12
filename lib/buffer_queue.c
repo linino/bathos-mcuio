@@ -74,6 +74,11 @@ int bathos_bqueue_stop(struct bathos_bqueue *q)
 int bathos_bqueue_empty(struct bathos_bqueue *q)
 {
 	struct bathos_bqueue_data *data = &q->data;
+	unsigned long flags;
+	int ret;
 
-	return list_empty(&data->free_bufs);
+	interrupt_disable(flags);
+	ret = list_empty(&data->free_bufs);
+	interrupt_restore(flags);
+	return ret;
 }
