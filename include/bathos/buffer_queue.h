@@ -59,8 +59,8 @@ int bathos_bqueue_client_init(struct bathos_bqueue *,
 struct bathos_bdescr *bathos_bqueue_get_buf(struct bathos_bqueue *);
 
 /*
- * Start buffer queue: this will result in a free event, so redirect
- * the free event __before__ starting the queue
+ * Start buffer queue: this will result in an available event, so redirect
+ * the available event __before__ starting the queue
  */
 int bathos_bqueue_start(struct bathos_bqueue *);
 
