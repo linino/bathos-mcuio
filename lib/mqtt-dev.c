@@ -75,6 +75,8 @@ static void mqtt_broker_connected_event_handler(struct event_handler_data *ed)
 	int stat;
 	struct mqtt_bathos_client *client = ed->data;
 
+	pr_debug("%s (client %p)\n", __func__, client);
+
 	if (client->mqtt_pipe->mode & BATHOS_MODE_INPUT)
 		mqtt_subscribe(&client->c, client->cdata->topic, 0);
 
@@ -93,6 +95,7 @@ mqtt_broker_connection_error_event_handler(struct event_handler_data *ed)
 {
 	struct mqtt_bathos_client *client = ed->data;
 
+	pr_debug("%s (client %p)\n", __func__, client);
 	trigger_event(client->cdata->connection_error_event, client);
 }
 declare_event_handler(mqtt_broker_connection_error, NULL,
