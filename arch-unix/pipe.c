@@ -327,7 +327,9 @@ static struct bathos_dev_ops unix_dev_ops = {
 	.write = unix_write,
 	.close = unix_close,
 	/* ioctl not implemented */
+#ifdef CONFIG_PIPE_ASYNC_INTERFACE
 	.get_bqueue = unix_dev_get_bqueue,
+#endif /* CONFIG_PIPE_ASYNC_INTERFACE */
 };
 
 /*
