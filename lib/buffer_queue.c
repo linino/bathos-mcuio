@@ -30,12 +30,13 @@ struct bathos_bdescr *bathos_bqueue_get_buf(struct bathos_bqueue *q)
 		printf("%s: queue is stopped\n", __func__);
 		return NULL;
 	}
+	interrupt_disable(flags);
 	if (list_empty(&data->free_bufs)) {
+		interrupt_restore(flags);
 		printf("%s: no free bufs\n", __func__);
 		return NULL;
 	}
 	out = list_first_entry(&data->free_bufs, struct bathos_bdescr, list);
-	interrupt_disable(flags);
 	/*
 	 * [atomically] move buffer to the list of busy buffers
 	 */
