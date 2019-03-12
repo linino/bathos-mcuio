@@ -243,8 +243,38 @@ error0:
 	return ret;
 }
 
+static int esp8266_wlan_close(struct bathos_pipe *pipe)
+{
+	struct bathos_bqueue *bq = bathos_dev_get_bqueue(pipe);
+	struct esp8266_wlan_priv *priv = bathos_bqueue_to_ll_priv(bq);
+	struct bathos_dev *dev = pipe->dev;
+	const struct esp8266_wlan_platform_data *plat = dev->platform_data;
+	struct bathos_bdescr *b, *tmp;
+
+	/* Tell the client we're closing */
+	list_for_each_entry_safe(b, tmp, &priv->rx_queue, list) {
+		/* buffer queue is being killed */
+		b->error = -EPIPE;
+		bathos_bqueue_server_buf_processed_immediate(b);
+	}
+	list_for_each_entry_safe(b, tmp, &priv->tx_queue, list) {
+		/* buffer queue is being killed */
+		b->error = -EPIPE;
+		bathos_bqueue_server_buf_processed_immediate(b);
+	}
+	/* Stop and finalize the queue */
+	bathos_bqueue_stop(bq);
+	bathos_bqueue_server_fini(bq);
+	/* Free the remaining resources */
+	bathos_dev_close(pipe);
+	bathos_dev_uninit(pipe);
+	bathos_free_buffer(priv->buffer_area, plat->nbufs * plat->bufsize);
+	bathos_free_buffer(priv, sizeof(*priv));
+	return 0;
+}
 
 const struct bathos_dev_ops esp8266_wlan_dev_ops = {
 	.open = esp8266_wlan_open,
 	.get_bqueue = bathos_dev_get_bqueue,
+	.close = esp8266_wlan_close,
 };
