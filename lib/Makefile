@@ -29,6 +29,7 @@ LIB_OBJS += lib/tcp-server-connection-dev.o
 LIB_OBJS += lib/mqtt.o
 LIB_OBJS += lib/mqtt_pal.o
 LIB_OBJS += lib/mqtt-dev.o
+LIB_OBJS += lib/mqtt-client.o
 endif
 
 $(LIBBATHOS): $(LIB_OBJS)
