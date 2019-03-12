@@ -15,7 +15,7 @@ config LININOIO_PIPE_PATH
        depends on TASK_LININOIO
        string
        default "wlan0" if ARCH=xtensa
-       default "eth0"
+       default "eth0" if ARCH=unix
        help
          Path of I/O path for lininoIO (must have an async interface)
 
