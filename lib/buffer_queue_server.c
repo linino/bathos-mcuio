@@ -25,6 +25,7 @@ int bathos_bqueue_server_init(struct bathos_bqueue *q,
 
 	data->setup_event = setup;
 	data->done_event = done;
+	data->nbufs = nbufs;
 	INIT_LIST_HEAD(&data->busy_bufs);
 	INIT_LIST_HEAD(&data->free_bufs);
 	if (!nbufs)
@@ -39,6 +40,7 @@ int bathos_bqueue_server_init(struct bathos_bqueue *q,
 		       __func__);
 		return -ENOMEM;
 	}
+	data->op_area = op_area;
 	for (i = 0, op = op_area, data_ptr = area ? area : NULL; i < nbufs;
 	     i++, op++, data_ptr = area ? data_ptr + bufsize : NULL) {
 		op->type = NONE;
@@ -84,4 +86,13 @@ void bathos_bqueue_server_buf_processed_immediate(struct bathos_bdescr *b)
 	struct bathos_bqueue_data *data = &q->data;
 
 	trigger_event_immediate(data->processed_event, b);
+}
+
+
+void bathos_bqueue_server_fini(struct bathos_bqueue *q)
+{
+	struct bathos_bqueue_data *data = &q->data;
+
+	bathos_free_buffer(data->op_area,
+			   data->nbufs * sizeof(*(data->op_area)));
 }

@@ -9,6 +9,8 @@ struct bathos_bqueue_data {
 	const struct event * PROGMEM done_event;
 	const struct event * PROGMEM available_event;
 	const struct event * PROGMEM processed_event;
+	int nbufs;
+	struct bathos_buffer_op *op_area;
 	struct list_head free_bufs;
 	struct list_head busy_bufs;
 };
@@ -34,5 +36,19 @@ extern void bathos_bqueue_server_buf_done(struct bathos_bdescr *b);
 extern void bathos_bqueue_server_buf_processed(struct bathos_bdescr *b);
 extern void
 bathos_bqueue_server_buf_processed_immediate(struct bathos_bdescr *b);
+
+/*
+ * free queue and relevant buffers
+ *
+ * Buffers free to be taken by the client are in the free list. Nothing to
+ * worry about them.
+ * Buffers being setup by the client are in the busy list. The client is
+ * responsible for them.
+ * The client needs to be notified about buffers being processed by the server
+ * while the buffer queue gets finalized. Before calling this function, the
+ * server must declare the buffer as processed with -EPIPE.
+ *
+ */
+extern void bathos_bqueue_server_fini(struct bathos_bqueue *);
 
 #endif /* __BUFFER_QUEUE_SERVER_H__ */
