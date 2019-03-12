@@ -61,4 +61,7 @@ config NRF5X_DRIVERS
 config LININOIO_DRIVERS
        bool
 
+config UNIX_ETH_DRIVER
+       depends on PIPE_ASYNC_INTERFACE && ARCH_UNIX
+
 endmenu

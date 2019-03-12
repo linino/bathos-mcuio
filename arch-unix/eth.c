@@ -12,6 +12,8 @@
 #include <bathos/buffer_queue_server.h>
 #include <bathos/unix-eth.h>
 
+#ifdef CONFIG_UNIX_ETH_DRIVER
+
 struct unix_eth_platform_data eth0_pdata = {
 	/* FIXME: make platform data dynamic */
 	.ifname = "eth0",
@@ -26,4 +28,6 @@ __attribute__((section(".bathos_devices"), aligned(4), used)) = {
 	.ops = &unix_eth_dev_ops,
 	.platform_data = &eth0_pdata,
 };
+
+#endif
 

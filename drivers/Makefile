@@ -54,7 +54,7 @@ ifeq ($(CONFIG_LININOIO_DRIVERS), y)
   DRV_OBJS += drivers/lininoio-dev.o
 endif
 
-ifeq ($(CONFIG_ARCH_UNIX), y)
+ifeq ($(CONFIG_UNIX_ETH_DRIVER), y)
   DRV_OBJS += drivers/unix-eth.o
 endif
 
