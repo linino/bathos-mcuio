@@ -319,8 +319,40 @@ error0:
 	return ret;
 }
 
+static int unix_eth_close(struct bathos_pipe *pipe)
+{
+	struct bathos_bqueue *bq = bathos_dev_get_bqueue(pipe);
+	struct unix_eth_priv *priv = bathos_bqueue_to_ll_priv(bq);
+	struct bathos_bdescr *b, *tmp;
+	const struct unix_eth_platform_data *pdata = pipe->dev->platform_data;
+	struct arch_unix_pipe_data *adata = pipe->dev->arch_priv;
+
+	/* Tell the client we're closing */
+	list_for_each_entry_safe(b, tmp, &priv->rx_queue, list) {
+		/* buffer queue is being killed */
+		b->error = -EPIPE;
+		bathos_bqueue_server_buf_processed_immediate(b);
+	}
+	list_for_each_entry_safe(b, tmp, &priv->tx_queue, list) {
+		/* buffer queue is being killed */
+		b->error = -EPIPE;
+		bathos_bqueue_server_buf_processed_immediate(b);
+	}
+	/* Stop and finalize the queue */
+	bathos_bqueue_stop(bq);
+	bathos_bqueue_server_fini(bq);
+	/* Free the remaining resources */
+	bathos_dev_close(pipe);
+	bathos_dev_uninit(pipe);
+	bathos_free_buffer(priv->buffer_area, pdata->nbufs * pdata->bufsize);
+	unix_free_pipe_arch_data(adata);
+	bathos_free_buffer(priv, sizeof(*priv));
+	return 0;
+}
+
 
 const struct bathos_dev_ops unix_eth_dev_ops = {
 	.open = unix_eth_open,
 	.get_bqueue = bathos_dev_get_bqueue,
+	.close = unix_eth_close,
 };
