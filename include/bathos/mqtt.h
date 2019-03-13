@@ -63,10 +63,6 @@
  * are \c address = \c "test.mosquitto.org",
  * \c port = \c "1883", and \c topic = "datetime".
  *
- * @example reconnect_subscriber.c
- * Same program as \ref simple_subscriber.c, but using the automatic reconnect
- * functionality.
- *
  * @example bio_publisher.c
  * Same program as \ref simple_publisher.c, but uses a unencrypted BIO socket.
  *
@@ -88,7 +84,6 @@
  * For usage examples see:
  *     - @ref simple_publisher.c
  *     - @ref simple_subscriber.c
- *     - @ref reconnect_subscriber.c
  *     - @ref bio_publisher.c
  *     - @ref openssl_publisher.c
  *
@@ -1200,23 +1195,6 @@ struct mqtt_client {
 	enum MQTTErrors (*inspector_callback)(struct mqtt_client*);
 
 	/**
-	 * @brief A callback that is called whenever the client is in an
-	 * error state.
-	 *
-	 * This callback is responsible for: application level error
-	 * handling, closing previous sockets, and reestabilishing the
-	 * connection to the broker and session configurations
-	 * (i.e. subscriptions).
-	 */
-	void (*reconnect_callback)(struct mqtt_client*, void**);
-
-	/**
-	 * @brief A pointer to some state. A pointer to this member is passed to
-	 *	  mqtt_client.reconnect_callback.
-	 */
-	void* reconnect_state;
-
-	/**
 	 * @brief The buffer where ingress data is temporarily stored.
 	 */
 	struct {
@@ -1343,8 +1321,8 @@ enum MQTTErrors mqtt_sync(struct mqtt_client *client);
  *       Note that the second argument is the mqtt_response_publish that
  *       was received from the broker.
  *
- * @attention Only initialize an MQTT client once (i.e. don't call mqtt_init or
- *	      mqtt_init_reconnect more than once per client).
+ * @attention Only initialize an MQTT client once (i.e. don't call mqtt_init
+ *	      more than once per client).
  *
  * @returns MQTT_OK upon success, an MQTTErrors otherwise.
  */
@@ -1355,87 +1333,6 @@ mqtt_init(struct mqtt_client *client,
 	  uint8_t *recvbuf, size_t recvbufsz,
 	  void (*publish_response_callback)(void** state,
 					    struct mqtt_response_publish *pub));
-
-/**
- * @brief Initializes an MQTT client and enables automatic reconnections.
- * @ingroup api
- *
- * An alternative to \ref mqtt_init that allows the client to automatically
- * reconnect to the broker after an error occurs (e.g. socket error or
- * internal buffer overflows).
- *
- * This is accomplished by calling the \p reconnect_callback whenever the
- * client enters an error state. The job of the reconnect_callback is to:
- * (1) perform error handling/logging,
- * (2) clean up the old connection (i.e. close client->socketfd),
- * (3) mqtt_reinit client, and
- * (4) reconfigure the MQTT session by calling \ref mqtt_connect followed by
- *     other API calls such as \ref mqtt_subscribe.
- *
- * The first argument to the \p reconnect_callback is the client (which will be in an error
- * state) and the second argument is a pointer to a void pointer where you can store some state
- * information. Internally, MQTT-C calls the reconnect callback like so:
- *
- *     client->reconnect_callback(client, &client->reconnect_state)
- *
- * Note that the reconnect_callback is also called to setup the initial
- * session. After calling mqtt_init_reconnect the client will be in the
- * error state MQTT_ERROR_INITIAL_RECONNECT.
- *
- * @pre None.
- *
- * @param[in,out] client The MQTT client that will be initialized.
- * @param[in] reconnect_callback The callback that will be called to
- *            connect/reconnect the client to the broker and perform
- *            application level error handling.
- * @param[in] reconnect_state A pointer to some state data for your
- *            reconnect_callback. If your reconnect_callback does not require
- *            any state information set this to NULL. A pointer to the memory
- *            address where the client stores a copy of this pointer is passed
- *            as the second argumnet to reconnect_callback.
- * @param[in] publish_response_callback The callback to call whenever
- *            application messagesare received from the broker.
- *
- * @post Call reconnect_callback yourself, or call mqtt_sync
- *	      (which will trigger the call to reconnect_callback).
- *
- * @attention Only initialize an MQTT client once (i.e. don't call mqtt_init or
- *	      mqtt_init_reconnect more than once per client).
- *
- */
-void mqtt_init_reconnect(struct mqtt_client *client,
-			 void (*reconnect_callback)(struct mqtt_client *client, void** state),
-			 void *reconnect_state,
-			 void (*publish_response_callback)(void** state, struct mqtt_response_publish *publish));
-
-/**
- * @brief Safely assign/reassign a socket and buffers to an new/existing client.
- * @ingroup api
- *
- * This function also clears the client error state. Upon exiting this function
- * client->error will be MQTT_ERROR_CONNECT_NOT_CALLED (which will be cleared)
- * as soon as mqtt_connect is called.
- *
- * @pre This function must be called BEFORE mqtt_connect.
- *
- * @param[in,out] client The MQTT client.
- * @param[in] socketfd The new socket connected to the broker.
- * @param[in] sendbuf The buffer that will be used to buffer egress traffic
- *            to the broker.
- * @param[in] sendbufsz The size of sendbuf in bytes.
- * @param[in] recvbuf The buffer that will be used to buffer ingress traffic
- *            from the broker.
- * @param[in] recvbufsz The size of recvbuf in bytes.
- *
- * @post Call \ref mqtt_connect.
- *
- * @attention This function should be used in conjunction with clients that
- *            have been initialzed with mqtt_init_reconnect.
- */
-void mqtt_reinit(struct mqtt_client* client,
-		 mqtt_pal_socket_handle socketfd,
-		 uint8_t *sendbuf, size_t sendbufsz,
-		 uint8_t *recvbuf, size_t recvbufsz);
 
 /**
  * @brief Establishes a session with the MQTT broker.

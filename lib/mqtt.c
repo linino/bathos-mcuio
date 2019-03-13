@@ -44,14 +44,6 @@ static inline void update_response_time(struct mqtt_client *client,
  */
 
 enum MQTTErrors mqtt_sync(struct mqtt_client *client) {
-	/* Recover from any errors */
-	MQTT_PAL_MUTEX_LOCK(&client->mutex);
-	if (client->error != MQTT_OK && client->reconnect_callback != NULL) {
-		client->reconnect_callback(client, &client->reconnect_state);
-		/* unlocked during CONNECT */
-	} else
-		MQTT_PAL_MUTEX_UNLOCK(&client->mutex);
-
 	/* Call inspector callback if necessary */
 	enum MQTTErrors err;
 	if (client->inspector_callback != NULL) {
@@ -131,55 +123,8 @@ enum MQTTErrors mqtt_init(struct mqtt_client *client,
 	client->publish_response_callback = publish_response_callback;
 
 	client->inspector_callback = NULL;
-	client->reconnect_callback = NULL;
-	client->reconnect_state = NULL;
 
 	return MQTT_OK;
-}
-
-void mqtt_init_reconnect(struct mqtt_client *client,
-			 void (*reconnect)(struct mqtt_client *, void**),
-			 void *reconnect_state,
-			 prc publish_response_callback)
-{
-	/* initialize mutex */
-	MQTT_PAL_MUTEX_INIT(&client->mutex);
-
-	client->socketfd = (mqtt_pal_socket_handle) -1;
-
-	mqtt_mq_init(&client->mq, NULL, 0);
-
-	client->recv_buffer.mem_start = NULL;
-	client->recv_buffer.mem_size = 0;
-	client->recv_buffer.curr = NULL;
-	client->recv_buffer.curr_sz = 0;
-
-	client->error = MQTT_ERROR_INITIAL_RECONNECT;
-	client->response_timeout = 10*HZ;
-	client->number_of_timeouts = 0;
-	client->number_of_keep_alives = 0;
-	client->typical_response_time = (unsigned long)-1;
-	client->publish_response_callback = publish_response_callback;
-
-	client->inspector_callback = NULL;
-	client->reconnect_callback = reconnect;
-	client->reconnect_state = reconnect_state;
-}
-
-void mqtt_reinit(struct mqtt_client* client,
-		 mqtt_pal_socket_handle socketfd,
-		 uint8_t *sendbuf, size_t sendbufsz,
-		 uint8_t *recvbuf, size_t recvbufsz)
-{
-	client->error = MQTT_ERROR_CONNECT_NOT_CALLED;
-	client->socketfd = socketfd;
-
-	mqtt_mq_init(&client->mq, sendbuf, sendbufsz);
-
-	client->recv_buffer.mem_start = recvbuf;
-	client->recv_buffer.mem_size = recvbufsz;
-	client->recv_buffer.curr = client->recv_buffer.mem_start;
-	client->recv_buffer.curr_sz = client->recv_buffer.mem_size;
 }
 
 /**
