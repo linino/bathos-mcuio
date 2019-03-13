@@ -8,6 +8,18 @@ MACH_DIR = $(ADIR)/mach-$(shell echo $(CONFIG_MACH))
 ARCH_CFLAGS += -I$(SRC_DIR)/$(MACH_DIR) -DARCH_HAS_BUILTIN_FFS
 ARCH_LDFLAGS += -L$(SRC_DIR)/$(MACH_DIR)
 
+ifneq ($(ESP8266_STATION_HOSTNAME),)
+ARCH_CFLAGS += -DESP8266_STATION_HOSTNAME=\"$(ESP8266_STATION_HOSTNAME)\"
+endif
+
+ifneq ($(ESP8266_ESSID),)
+ARCH_CFLAGS += -DESP8266_ESSID=\"$(ESP8266_ESSID)\"
+endif
+
+ifneq ($(ESP8266_PASSWD),)
+ARCH_CFLAGS += -DESP8266_PASSWD=\"$(ESP8266_PASSWD)\"
+endif
+
 # No boot code for this machine at the moment, we just build libraries.
 BOOT_OBJ = $(ADIR)/init.o
 
