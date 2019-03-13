@@ -33,17 +33,17 @@ config STM32F4X_DRIVERS
 config ESP8266_DRIVERS
        bool
 
-config ESP8266_STATION_HOSTNAME
+config DEFAULT_ESP8266_STATION_HOSTNAME
        depends on ESP8266_DRIVERS
        string "Wifi station hostname"
        default "lininoIO"
 
-config ESP8266_ESSID
+config DEFAULT_ESP8266_ESSID
        depends on ESP8266_DRIVERS
        string "Wifi essid"
        default "my-network"
 
-config ESP8266_PASSWD
+config DEFAULT_ESP8266_PASSWD
        depends on ESP8266_DRIVERS
        string "Wifi password"
        default "12345678"

@@ -80,11 +80,11 @@ static int wifi_init(void)
 
 	/* Init wifi */
 	printf("esp8266 wifi init\n");
-	wifi_station_set_hostname(CONFIG_ESP8266_STATION_HOSTNAME);
+	wifi_station_set_hostname(ESP8266_STATION_HOSTNAME);
 	wifi_set_opmode_current(STATION_MODE);
 	config.bssid_set = 0;
-	memcpy(&config.ssid, CONFIG_ESP8266_ESSID, 32);
-	memcpy(&config.password, CONFIG_ESP8266_PASSWD, 64);
+	memcpy(&config.ssid, ESP8266_ESSID, 32);
+	memcpy(&config.password, ESP8266_PASSWD, 64);
 	wifi_station_set_config(&config);
 	wifi_set_event_handler_cb(wifi_callback);
 	return 0;
