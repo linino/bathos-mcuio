@@ -45,10 +45,16 @@ config BOARD_STAR_8266
        help
 	"Build for a STAR board"
 
+config BOARD_MODULINO_8266
+       bool "Modulino board (8266 soc)"
+       help
+	"Build for a MODULINO board"
+
 endchoice
 
 config BOARD
        default "star" if BOARD_STAR_8266
+       default "modulino-8266" if BOARD_MODULINO_8266
 
 config ESP8266_SERIAL_RX0_FIFO_INT_THRESHOLD
        int "Rx fifo full interrupt threshold, UART0"

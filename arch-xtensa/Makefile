@@ -29,6 +29,10 @@ ifeq ($(CONFIG_BOARD_STAR_8266),y)
 LIBARCH_OBJS += $(MACH_DIR)/board-star.o
 endif
 
+ifeq ($(CONFIG_BOARD_MODULINO_8266),y)
+LIBARCH_OBJS += $(MACH_DIR)/board-modulino.o
+endif
+
 LDS = $(wildcard $(SRC_DIR)/$(MACH_DIR)/bathos$(MODE).lds)
 
 CFLAGS = $(ARCH_CFLAGS)
