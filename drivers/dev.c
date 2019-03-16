@@ -15,15 +15,14 @@
 #include <bathos/string.h>
 #include <bathos/buffer_queue_server.h>
 
-#define UART_DEFAULT_BUF_SIZE 16
+#define DEV_DEFAULT_BUF_SIZE 16
 
 struct bathos_dev_data {
 	union {
 		struct {
 			int head;
 			int tail;
-			int size;
-			char *buf;
+			char buf[DEV_DEFAULT_BUF_SIZE];
 		} cb;
 		struct {
 
@@ -107,14 +106,14 @@ int bathos_pipe_push_chars(struct bathos_pipe *pipe, const char *buf, int len)
 		return 0;
 	}
 
-	s = CIRC_SPACE(data->d.cb.head, data->d.cb.tail, data->d.cb.size);
+	s = CIRC_SPACE(data->d.cb.head, data->d.cb.tail, DEV_DEFAULT_BUF_SIZE);
 	if (!s)
 		return -ENOMEM;
 	/* Copy to the end of the buffer */
 	l = min(len, CIRC_SPACE_TO_END(data->d.cb.head, data->d.cb.tail,
-				       data->d.cb.size));
+				       DEV_DEFAULT_BUF_SIZE));
 	memcpy(&data->d.cb.buf[data->d.cb.head], buf, l);
-	data->d.cb.head = (data->d.cb.head + l) & (data->d.cb.size - 1);
+	data->d.cb.head = (data->d.cb.head + l) & (DEV_DEFAULT_BUF_SIZE - 1);
 	len -= l;
 	buf += l;
 	if (!l)
@@ -123,9 +122,9 @@ int bathos_pipe_push_chars(struct bathos_pipe *pipe, const char *buf, int len)
 	/* And finally copy the rest */
 	l = min(len, s);
 	memcpy(&data->d.cb.buf[data->d.cb.head], buf, l);
-	data->d.cb.head = (data->d.cb.head + l) & (data->d.cb.size - 1);
+	data->d.cb.head = (data->d.cb.head + l) & (DEV_DEFAULT_BUF_SIZE - 1);
 end:
-	if (CIRC_CNT(data->d.cb.head, data->d.cb.tail, data->d.cb.size) >
+	if (CIRC_CNT(data->d.cb.head, data->d.cb.tail, DEV_DEFAULT_BUF_SIZE) >
 	    data->rx_hwm)
 		pipe_trigger_event(pipe, &evt_pipe_input_ready);
 	return out + l;
@@ -142,13 +141,6 @@ int bathos_dev_push_chars(struct bathos_dev *dev, const char *buf, int len)
 }
 
 
-static int __allocate_internal_buf(struct bathos_dev_data *data)
-{
-	data->d.cb.size = UART_DEFAULT_BUF_SIZE;
-	data->d.cb.buf = bathos_alloc_buffer(data->d.cb.size);
-	return data->d.cb.buf ? 0 : -ENOMEM;
-}
-
 int bathos_dev_open(struct bathos_pipe *pipe)
 {
 	struct bathos_dev_data *data = pipe->dev_data;
@@ -157,14 +149,9 @@ int bathos_dev_open(struct bathos_pipe *pipe)
 	int stat;
 
 	ops = __get_ops(pipe->dev, &__ops);
-	if (!pipe_mode_is_async(pipe)) {
-		if (!data->d.cb.buf) {
-			stat = __allocate_internal_buf(data);
-			if (stat < 0)
-				return stat;
-		}
+	if (!pipe_mode_is_async(pipe))
 		data->d.cb.head = data->d.cb.tail = 0;
-	} else {
+	else {
 		if (!ops->async_open)
 			return -EINVAL;
 		stat = ops->async_open(pipe->dev->ll_priv);
@@ -189,21 +176,18 @@ int bathos_dev_read(struct bathos_pipe *pipe, char *buf, int len)
 	int l;
 	struct bathos_dev_data *data = pipe->dev_data;
 
-	if (!data->d.cb.buf || !data->d.cb.size)
-		return -EINVAL;
-
 	if (data->d.cb.head == -1 && data->d.cb.tail == -1)
 		return 0;
 
 	l = min(len, CIRC_CNT_TO_END(data->d.cb.head, data->d.cb.tail,
-				     data->d.cb.size));
+				     DEV_DEFAULT_BUF_SIZE));
 	if (!l)
 		return -EAGAIN;
 
 	memcpy(buf, &data->d.cb.buf[data->d.cb.tail], l);
-	data->d.cb.tail = (data->d.cb.tail + l) & (data->d.cb.size - 1);
+	data->d.cb.tail = (data->d.cb.tail + l) & (DEV_DEFAULT_BUF_SIZE - 1);
 
-	if (CIRC_CNT(data->d.cb.head, data->d.cb.tail, data->d.cb.size))
+	if (CIRC_CNT(data->d.cb.head, data->d.cb.tail, DEV_DEFAULT_BUF_SIZE))
 		pipe_dev_trigger_event(pipe->dev, &evt_pipe_input_ready);
 
 	return l;
