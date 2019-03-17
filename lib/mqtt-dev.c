@@ -79,6 +79,7 @@ static void mqtt_broker_connected_event_handler(struct event_handler_data *ed)
 
 	if (client->mqtt_pipe->mode & BATHOS_MODE_INPUT)
 		mqtt_subscribe(&client->c, client->cdata->topic, 0);
+	client->connected = 1;
 
 	/* 200ms */
 	stat = sys_timer_enqueue_tick(HZ / 50, client,
@@ -147,8 +148,12 @@ static void _free_client(struct mqtt_bathos_client *c)
 	bathos_free_buffer(c->sendbuf, MQTT_SENDBUF_SIZE);
 	bathos_free_buffer(c->recvbuf, MQTT_RECVBUF_SIZE);
 	bathos_free_buffer(c->buffer_area, cdata->nbufs * cdata->bufsize);
-	/* Will actually be freed on next scheduled tick */
-	c->closing = 1;
+	if (c->connected)
+		/* Will actually be freed on next scheduled tick */
+		c->closing = 1;
+	else
+		/* no tick in place, free immediately */
+		list_move(&c->list, &mqtt_free_clients);
 }
 
 static struct mqtt_bathos_client *_new_client(struct bathos_pipe *pipe)
@@ -176,6 +181,7 @@ static struct mqtt_bathos_client *_new_client(struct bathos_pipe *pipe)
 	out->c.publish_response_callback_state = out;
 	out->c.inspector_callback = _inspector_cb;
 	out->mqtt_pipe = pipe;
+	out->connected = 0;
 
 	out->sendbuf = bathos_alloc_buffer(MQTT_SENDBUF_SIZE);
 	if (!out->sendbuf) {

@@ -33,6 +33,7 @@ struct mqtt_bathos_client {
 	uint8_t *buffer_area;
 	struct mqtt_client_data *cdata;
 	int closing;
+	int connected;
 	/* Subscribe queue */
 	struct list_head subscribe_queue;
 	struct list_head list;
