@@ -162,13 +162,16 @@ static int tcp_client_dev_ioctl(struct bathos_pipe *pipe,
 	return -1;
 }
 
-static int tcp_client_dev_close(struct bathos_pipe *pipe)
+static int tcp_client_on_pipe_close(struct bathos_pipe *pipe)
 {
 	struct tcp_client_data *data = pipe->data;
 	struct tcp_conn_data *cd = data->impl_priv;
 
+	bathos_dev_close(pipe);
+	bathos_dev_uninit(pipe);
+
 	_client_fini(cd->raw_socket);
-	
+
 	return tcp_client_socket_lwip_raw_fini(cd->raw_socket);
 }
 
@@ -176,6 +179,6 @@ const struct bathos_dev_ops tcp_client_dev_ops = {
 	.open = tcp_client_dev_open,
 	.read = bathos_dev_read,
 	.write = tcp_client_dev_write,
-	.close = tcp_client_dev_close,
+	.on_pipe_close = tcp_client_on_pipe_close,
 	.ioctl = tcp_client_dev_ioctl,
 };
