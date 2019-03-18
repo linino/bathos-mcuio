@@ -343,12 +343,13 @@ static int mqtt_client_dev_open(struct bathos_pipe *pipe)
 	ret = bathos_dev_open(pipe);
 	if (ret < 0) {
 		printf("%s: bathos_dev_open() returns error\n", __func__);
-		goto error0;
+		goto error1;
 	}
 	q = bathos_dev_get_bqueue(pipe);
 	if (!q) {
 		printf("%s: cannot get buffer queue\n", __func__);
-		return -EINVAL;
+		ret = -EINVAL;
+		goto error2;
 	}
 	ret = bathos_bqueue_server_init(q,
 					&event_name(mqtt_client_setup),
@@ -360,10 +361,12 @@ static int mqtt_client_dev_open(struct bathos_pipe *pipe)
 	if (ret) {
 		printf("%s: bathos_bqueue_server_init() returns error\n",
 		       __func__);
-		goto error1;
+		goto error2;
 	}
 	return ret;
 
+error2:
+	bathos_dev_close(pipe);
 error1:
 	bathos_dev_uninit(pipe);
 error0:
