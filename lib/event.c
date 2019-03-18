@@ -154,6 +154,7 @@ int trigger_event(const struct event *e, void *data)
 	interrupt_disable(flags);
 	if (!CIRC_SPACE(pe_head, pe_tail, pe_buffer_nevts)) {
 		interrupt_restore(flags);
+		printf("%s: no memory for event\n");
 		return -ENOMEM;
 	}
 	h = pe_head;
