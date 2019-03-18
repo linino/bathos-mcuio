@@ -358,7 +358,8 @@ int tcp_socket_lwip_raw_send(struct tcp_conn_data *es,
 		stat = tcp_write(es->pcb, &ptr[es->written], l,
 				 TCP_WRITE_FLAG_COPY);
 		if (stat != ERR_OK) {
-			printf("%s: tcp_write returned error\n", __func__);
+			printf("%s: tcp_write returned error %d\n", __func__,
+			       stat);
 			es->raw_socket->active_conn_error = 1;
 			break;
 		}
