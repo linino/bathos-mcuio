@@ -89,6 +89,7 @@ static void tcp_client_conn_error(struct tcp_conn_data *cd, int error)
 	struct tcp_socket_lwip_raw *rs = cd->raw_socket;
 	struct tcp_client_data *data = rs->pipe->data;
 
+	data->impl_priv = cd;
 	if (data->connection_error_event)
 		trigger_event(data->connection_error_event,
 			      data->connection_error_event_data);

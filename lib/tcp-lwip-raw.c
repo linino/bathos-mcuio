@@ -122,6 +122,22 @@ err_t tcp_conn_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 	return ERR_OK;
 }
 
+void tcp_active_conn_error(void *arg, err_t err)
+{
+	struct tcp_conn_data *es;
+	struct tcp_socket_lwip_raw *r;
+
+	es = arg;
+	if (!es)
+		return;
+	r = es->raw_socket;
+	r->active_conn_error = 1;
+	if (r->ops->error)
+		r->ops->error(es, err);
+
+	tcp_conn_free(es);
+}
+
 void tcp_conn_error(void *arg, err_t err)
 {
 	struct tcp_conn_data *es;
@@ -182,8 +198,15 @@ static err_t tcp_conn_established(void *arg, struct tcp_pcb *newpcb, err_t err,
 				  int server)
 {
 	struct tcp_conn_data *es;
-	struct tcp_socket_lwip_raw *r = arg;
+	struct tcp_socket_lwip_raw *r;
 	int stat = 0;
+
+	if (server)
+		r = arg;
+	else {
+		es = arg;
+		r = es->raw_socket;
+	}
 
 	pr_debug("%s %d, err = %d, newpcb = %p, r = %p\n", __func__, __LINE__,
 		 err, newpcb, r);
@@ -196,20 +219,28 @@ static err_t tcp_conn_established(void *arg, struct tcp_pcb *newpcb, err_t err,
 	 */
 	tcp_setprio(newpcb, TCP_PRIO_MIN);
 
-	es = alloc_connection();
-	if (!es)
-		return ERR_MEM;
-	es->state = ES_CONNECTED;
-	es->pcb = newpcb;
-	es->raw_socket = r;
-	es->acknowledged = es->written = 0;
-	if (server && r->ops->accept)
-		stat = r->ops->accept(es);
-	if (!server && r->ops->connected)
-		stat = r->ops->connected(es);
-	if (stat) {
-		free_connection(es);
-		return ERR_MEM;
+	if (server) {
+		es = alloc_connection();
+		if (!es)
+			return ERR_MEM;
+		es->state = ES_CONNECTED;
+		es->pcb = newpcb;
+		es->raw_socket = r;
+		es->acknowledged = es->written = 0;
+		if (r->ops->accept)
+			stat = r->ops->accept(es);
+		if (stat) {
+			free_connection(es);
+			return ERR_MEM;
+		}
+	} else {
+		if (r->ops->connected) {
+			stat = r->ops->connected(es);
+			if (stat) {
+				free_connection(es);
+				return ERR_MEM;
+			}
+		}
 	}
 	/* pass newly allocated es to our callbacks */
 	tcp_arg(newpcb, es);
@@ -247,10 +278,10 @@ int tcp_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
 		printf("%s: tcp_new() returns error\n", __func__);
 		return -1;
 	}
-	tcp_arg(r->tcp_conn_pcb, r);
 	if (server) {
 		/* server */
 		pr_debug("%s: binding to port %u\n", __func__, port);
+		tcp_arg(r->tcp_conn_pcb, r);
 		err = tcp_bind(r->tcp_conn_pcb, ipaddr, port);
 		if (err != ERR_OK) {
 			printf("%s: tcp_bind() to port %u returns error %d\n",
@@ -264,13 +295,28 @@ int tcp_socket_lwip_raw_init(struct tcp_socket_lwip_raw *r,
 		}
 		tcp_accept(r->tcp_conn_pcb, tcp_conn_accept);
 	} else {
+		struct tcp_conn_data *es;
+
 		/* client */
 		pr_debug("%s: connecting to %s\n", __func__,
 			 ipaddr_ntoa(ipaddr));
+		es = alloc_connection();
+		if (!es) {
+			printf("%s: cannot allocate connection\n", __func__);
+			return ERR_MEM;
+		}
+		es->state = ES_CONNECTED;
+		es->pcb = r->tcp_conn_pcb;
+		es->raw_socket = r;
+		es->acknowledged = es->written = 0;
+		tcp_arg(r->tcp_conn_pcb, es);
+		tcp_err(r->tcp_conn_pcb, tcp_active_conn_error);
+		r->active_conn_error = 0;
 		err = tcp_connect(r->tcp_conn_pcb, ipaddr, port,
 				  tcp_socket_lwip_connected);
 		if (err != ERR_OK) {
 			printf("%s: tcp_connect() returns error\n", __func__);
+			free_connection(es);
 			return -1;
 		}
 	}
