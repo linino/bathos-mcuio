@@ -60,8 +60,10 @@ int sys_timer_enqueue_tick(unsigned long evt_jiffies, void *data,
 	const struct event *evt = _evt ? _evt : &event_name(sys_timer_tick);
 	int flags;
 	t = alloc_tick();
-	if (!t)
+	if (!t) {
+		printf("%s: no memory for tick !!\n", __func__);
 		return -ENOMEM;
+	}
 	t->when = jiffies + evt_jiffies;
 	t->data = data;
 	t->evt = evt;
