@@ -71,6 +71,7 @@ struct tcp_socket_lwip_raw {
 	void (*netif_idle)(struct netif *);
 	struct netif *netif;
 	struct tcp_pcb *tcp_conn_pcb;
+	int active_conn_error;
 	struct bathos_pipe *pipe;
 	void *server_priv;
 };

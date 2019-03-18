@@ -284,7 +284,8 @@ int tcp_socket_lwip_raw_fini(struct tcp_socket_lwip_raw *r)
 		return -1;
 	}
 	tcp_arg(r->tcp_conn_pcb, NULL);
-	tcp_abort(r->tcp_conn_pcb);
+	if (!r->active_conn_error)
+		tcp_abort(r->tcp_conn_pcb);
 	return 0;
 }
 
@@ -312,6 +313,7 @@ int tcp_socket_lwip_raw_send(struct tcp_conn_data *es,
 				 TCP_WRITE_FLAG_COPY);
 		if (stat != ERR_OK) {
 			printf("%s: tcp_write returned error\n", __func__);
+			es->raw_socket->active_conn_error = 1;
 			break;
 		}
 		es->written += l;
@@ -326,8 +328,11 @@ int tcp_socket_lwip_raw_send(struct tcp_conn_data *es,
 
 int tcp_socket_lwip_raw_close(struct tcp_conn_data *es)
 {
+	struct tcp_socket_lwip_raw *r = es->raw_socket;
+
 	pr_debug("%s\n", __func__);
-	tcp_conn_close(es->pcb, es);
+	if (!r->active_conn_error)
+		tcp_conn_close(es->pcb, es);
 	return 0;
 }
 
