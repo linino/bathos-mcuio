@@ -16,7 +16,7 @@ ifeq ($(MACHINE),x86_64)
 endif
 
 
-AOBJ = $(ADIR)/idle.o $(ADIR)/pipe.o $(ADIR)/eth.o
+AOBJ = $(ADIR)/idle.o $(ADIR)/pipe.o $(ADIR)/eth.o $(ADIR)/bp-spim.o
 
 $(ADIR)/libarch.a: $(LIBARCH_OBJS)
 	$(AR) r $@ $(LIBARCH_OBJS)

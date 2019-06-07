@@ -64,4 +64,8 @@ config LININOIO_DRIVERS
 config UNIX_ETH_DRIVER
        depends on PIPE_ASYNC_INTERFACE && ARCH_UNIX
 
+config BP_SPIM_DRIVER
+       tristate "Bus pirate spi master driver"
+       depends on PIPE_ASYNC_INTERFACE && ARCH_UNIX
+
 endmenu
