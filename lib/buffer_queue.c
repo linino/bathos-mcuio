@@ -42,6 +42,7 @@ struct bathos_bdescr *bathos_bqueue_get_buf(struct bathos_bqueue *q)
 	 */
 	list_move(&out->list, &data->busy_bufs);
 	interrupt_restore(flags);
+	INIT_LIST_HEAD(&out->sglist);
 	/*
 	 * Trigger a setup event for this queue on next buffer release by
 	 * the client
