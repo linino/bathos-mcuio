@@ -58,8 +58,11 @@ int bathos_bqueue_start(struct bathos_bqueue *q)
 {
 	struct bathos_bqueue_data *data = &q->data;
 
-	if (data->available_event)
+	if (data->available_event) {
+		pr_debug("%s: triggering available event (%p) for queue %p\n",
+			 __func__, data->available_event, q);
 		trigger_event(data->available_event, q);
+	}
 	data->stopped = 0;
 	return 0;
 }

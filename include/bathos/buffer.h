@@ -153,8 +153,11 @@ static inline void bdescr_put(struct bathos_bdescr *b)
 		return;
 	}
 	interrupt_restore(flags);
-	if (b->release_event)
+	if (b->release_event) {
+		pr_debug("%s: triggering release event (%p) for buffer %p\n",
+			 __func__, b->release_event, b);
 		trigger_event(b->release_event, b);
+	}
 }
 
 static inline struct bathos_bdescr *

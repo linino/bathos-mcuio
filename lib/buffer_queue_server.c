@@ -68,8 +68,11 @@ void bathos_bqueue_server_buf_done(struct bathos_bdescr *b)
 		free_list_was_empty = 1;
 	list_move(&b->list, &data->free_bufs);
 	interrupt_restore(flags);
-	if (data->available_event && free_list_was_empty)
+	if (data->available_event && free_list_was_empty) {
+		pr_debug("%s: triggering available event (%p)\n", __func__,
+			 data->available_event);
 		trigger_event(data->available_event, q);
+	}
 }
 
 void bathos_bqueue_server_buf_processed(struct bathos_bdescr *b)
@@ -77,6 +80,8 @@ void bathos_bqueue_server_buf_processed(struct bathos_bdescr *b)
 	struct bathos_bqueue *q = b->queue;
 	struct bathos_bqueue_data *data = &q->data;
 
+	pr_debug("%s: triggering processed event (%p) for buffer %p\n",
+		 __func__, data->processed_event, b);
 	trigger_event(data->processed_event, b);
 }
 
