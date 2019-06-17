@@ -15,7 +15,7 @@ struct cmdline_item {
 
 #define declare_cmdline_handler(n,p,d)				\
 	const struct cmdline_item cmdline_item_ ## n		\
-	__attribute__((section(".cmdline_items"), aligned(32))) = {	\
+	__attribute__((section(".cmdline_items"), __used__, aligned(32))) = { \
 		.name = #n,					\
 		.parse = p,					\
 		.data = d,					\
