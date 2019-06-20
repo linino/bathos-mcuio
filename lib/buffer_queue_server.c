@@ -82,6 +82,12 @@ void bathos_bqueue_server_buf_processed(struct bathos_bdescr *b)
 
 	pr_debug("%s: triggering processed event (%p) for buffer %p\n",
 		 __func__, data->processed_event, b);
+	bdescr_remap_release_event(b, data->done_event);
+	bdescr_get(b);
+	if (b->users != 1) {
+		printf("%s: bdescr users = %d\n", __func__, b->users);
+		return;
+	}
 	trigger_event(data->processed_event, b);
 }
 
