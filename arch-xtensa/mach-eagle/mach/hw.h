@@ -8,6 +8,7 @@
 #define SPI0_IRQN 4
 #define SPI1_IRQN 5
 #define SPI2_IRQN 6
+#define GPIO_IRQN 7
 
 #endif /* __XTENSA_EAGLE_HW_H__ */
 

@@ -18,6 +18,8 @@
 #include <osapi.h>
 #include <user_interface.h>
 
+#define GPIO_NR 16
+
 
 #define SPIIR (0x3ff00000 + 0x20)
 #  define SPI0_INT 4
@@ -38,10 +40,24 @@ static void __isr spi_isr(void *arg)
 	/* FIXME: MORE EVENTS .... */
 }
 
+#define GPIOIR (0x60000300 + 0x1c)
+
+static void gpio_isr(void *arg)
+{
+	uint32_t istatus;
+
+	istatus = readl(GPIOIR);
+
+	if (istatus)
+		trigger_interrupt_event(GPIO_IRQN);
+	else
+		printf("WARN: spurious gpio interrupt\n");
+}
 
 static int eagle_irq_init(void)
 {
 	ETS_SPI_INTR_ATTACH(spi_isr, NULL);
+	ETS_GPIO_INTR_ATTACH(gpio_isr, NULL);
 	return 0;
 }
 core_initcall(eagle_irq_init);
@@ -57,6 +73,8 @@ static inline int virt_to_hw_irq(int irq)
 	case SPI1_IRQN:
 	case SPI2_IRQN:
 		return ETS_SPI_INUM;
+	case GPIO_IRQN:
+		return ETS_GPIO_INUM;
 	default:
 		return -1;
 	}
