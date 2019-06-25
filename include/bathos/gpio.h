@@ -105,7 +105,7 @@ extern int gpio_request_events(int gpio, int flags);
  * function for gpio selection. In case a specific machine implements
  * gpio_to_af, HAVE_GPIO_TO_AF must be defined
  */
-#ifndef HAVE_GPIO_TO_AF
+#ifndef CONFIG_HAVE_GPIO_TO_AF
 static inline int gpio_to_af(int gpio)
 {
 	return 0;
