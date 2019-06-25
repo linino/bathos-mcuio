@@ -84,12 +84,12 @@ static inline int virt_to_hw_irq(int irq)
 
 static void __isr esp8266_enable_irq(struct bathos_irq_controller *c, int irq)
 {
-	unmask_irq(irq);
+	unmask_irq(virt_to_hw_irq(irq));
 }
 
 static void __isr esp8266_disable_irq(struct bathos_irq_controller *c, int irq)
 {
-	mask_irq(irq);
+	mask_irq(virt_to_hw_irq(irq));
 }
 
 static void __isr esp8266_clear_pending_irq(struct bathos_irq_controller *c,
@@ -107,13 +107,13 @@ static void __isr esp8266_set_pending_irq(struct bathos_irq_controller *c,
 static void __isr esp8266_mask_ack_irq(struct bathos_irq_controller *c, int irq)
 {
 	/* FIXME: IS THIS ENOUGH ? */
-	mask_irq(irq);
+	mask_irq(virt_to_hw_irq(irq));
 }
 
 static void __isr esp8266_unmask_irq(struct bathos_irq_controller *c, int irq)
 {
 	/* FIXME: IS THIS ENOUGH ? */
-	unmask_irq(irq);
+	unmask_irq(virt_to_hw_irq(irq));
 }
 
 static struct bathos_irq_controller esp8266_virq_ctrl = {
