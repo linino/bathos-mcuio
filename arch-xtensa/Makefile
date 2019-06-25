@@ -35,6 +35,7 @@ ARCH_EXTRA_LIBS = -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain
 ifeq ($(CONFIG_MACH_EAGLE),y)
 LIBARCH_OBJS += $(MACH_DIR)/irq.o
 AOBJ += $(MACH_DIR)/esp8266-wifi.o
+AOBJ += $(MACH_DIR)/gpio.o
 endif
 
 ifeq ($(CONFIG_BOARD_STAR_8266),y)

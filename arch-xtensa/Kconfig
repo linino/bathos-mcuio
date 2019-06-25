@@ -12,6 +12,9 @@ config MACH_EAGLE
        select HAVE_IRQ_CONTROLLER
        select ISRS_IN_RAM
        select HAVE_LWIP
+       select HAVE_GPIOS
+       select HAVE_GPIO_TO_AF
+       select HAVE_GPIO_EVENTS
        help
 	"Build for the esp8266 chip"
 
