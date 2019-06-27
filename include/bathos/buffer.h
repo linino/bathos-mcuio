@@ -149,7 +149,7 @@ static inline void bdescr_put(struct bathos_bdescr *b)
 
 	interrupt_disable(flags);
 	if (!b->users) {
-		printf("WARNING: trying to put buffer %p with 0 users\n");
+		printf("WARNING: trying to put buffer %p with 0 users\n", b);
 		interrupt_restore(flags);
 		return;
 	}
