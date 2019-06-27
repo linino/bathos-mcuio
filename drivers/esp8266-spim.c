@@ -13,9 +13,17 @@
 #include <bathos/esp8266-spim.h>
 #include <bathos/buffer_queue_server.h>
 #include <bathos/io.h>
+#include <bathos/irq.h>
 #include <ets_sys.h>
 #include <osapi.h>
 #include <user_interface.h>
+#include <mach/hw.h>
+
+/*
+ * Don't seem to work for master, as far as I can understand
+ * Esp8266 documentation sucks !!!
+ */
+#define USE_INTERRUPTS 0
 
 /* Registers' offset */
 #define SPI_CMD		0x00
@@ -50,7 +58,12 @@
 #  define SLAVE_MODE	BIT(30)
 #  define WR_RD_BUF_EN	BIT(29)
 #  define WR_RD_STA_EN  BIT(28)
+#  define TRANS_DONE    BIT(4)
+#if USE_INTERRUPTS
 #  define ALL_INTERRUPTS 0x3e0
+#else
+#  define ALL_INTERRUPTS 0
+#endif /* USE_INTERRUPTS */
 
 #define SPI_W(j)	(0x40 + (j))
 
@@ -123,14 +136,23 @@ static inline void _disable_all(struct esp8266_spim_priv *priv)
 	writel(v, priv->plat->base + SPI_USER);
 }
 
-/*
- * Interrupt handler invoked in main context
- */
-void esp8266_spim_int_handler(struct bathos_dev *dev)
+static int _wait_for_trans_end(struct esp8266_spim_priv *priv)
 {
-	struct esp8266_spim_priv *priv = dev->ll_priv;
+	uint32_t v;
+
+	while(1) {
+		v = readl(SPI_SLAVE + priv->plat->base);
+		if (v & TRANS_DONE)
+			break;
+	}
+}
+
+static void _transaction_done(struct esp8266_spim_priv *priv)
+{
 	unsigned int i;
 
+	if (!priv->b)
+		return;
 	if (priv->rx_el) {
 		uint8_t *ptr = priv->rx_el->data;
 
@@ -149,6 +171,14 @@ void esp8266_spim_int_handler(struct bathos_dev *dev)
 	}
 	priv->b->error = 0;
 	bathos_bqueue_server_buf_processed(priv->b);
+}
+
+/*
+ * Interrupt handler invoked in main context
+ */
+void esp8266_spim_int_handler(struct bathos_dev *dev)
+{
+	_transaction_done(dev->ll_priv);
 }
 
 static int _check_bidir(struct bathos_bdescr *b,
@@ -340,6 +370,11 @@ static void start_trans(struct esp8266_spim_priv *priv)
 	/* And then finally start transaction */
 	priv->b = b;
 	_start(priv);
+	if (!(USE_INTERRUPTS)) {
+		if (_wait_for_trans_end(priv) < 0)
+			return;
+		_transaction_done(priv);
+	}
 }
 
 static int _spim_init(struct esp8266_spim_priv *priv)
@@ -367,6 +402,28 @@ static int _spim_init(struct esp8266_spim_priv *priv)
 
 	if (plat->setup_pins)
 		return plat->setup_pins(plat->instance);
+
+	if (USE_INTERRUPTS) {
+		int irq;
+
+		switch (plat->instance) {
+		case 0:
+			irq = SPI0_IRQN;
+			break;
+		case 1:
+			irq = SPI1_IRQN;
+			break;
+		case 2:
+			irq = SPI2_IRQN;
+			break;
+		default:
+			irq = -1;
+			printf("%s: invalid instance number\n", __func__);
+			break;
+		}
+		if (irq > 0)
+			bathos_enable_irq(irq);
+	}
 
 	return 0;
 }
