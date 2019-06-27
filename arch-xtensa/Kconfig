@@ -53,11 +53,17 @@ config BOARD_MODULINO_8266
        help
 	"Build for a MODULINO board"
 
+config BOARD_PRIMO_MINI_8266
+       bool "Primo mini board (8266 soc)"
+       help
+        "Build for a PRIMO MINI board"
+
 endchoice
 
 config BOARD
        default "star" if BOARD_STAR_8266
        default "modulino-8266" if BOARD_MODULINO_8266
+       default "primo-mini" if BOARD_PRIMO_MINI_8266
 
 config ESP8266_SERIAL_RX0_FIFO_INT_THRESHOLD
        int "Rx fifo full interrupt threshold, UART0"
