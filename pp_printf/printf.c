@@ -33,7 +33,8 @@ int pp_printf(const char * PROGMEM fmt, ...)
 
 		ret = pp_vsprintf(print_buf, fmt, args);
 		for (ptr = print_buf; *ptr; ptr++)
-			console_putc(*ptr);
+			/* This will actually call console_putc() */
+			putc(*ptr);
 	}
 #else
 	ret = pipe_pp_vprintf(bathos_stdout, fmt, args);
