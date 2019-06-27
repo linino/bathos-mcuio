@@ -329,8 +329,11 @@ static void start_trans(struct esp8266_spim_priv *priv)
 			/* BIDIR */
 			data = priv->tx_el->data;
 			len = priv->tx_el->len;
+			pr_debug("%s, BIDIR-SEND: data = %p, len = %d\n",
+				 __func__, data, len);
 		} else {
 			/* SEND */
+			pr_debug("%s: SEND ONLY\n", __func__);
 			if (_check_send(b, &data, &len) < 0) {
 				b->error = -EINVAL;
 				bathos_bqueue_server_buf_processed(b);
@@ -350,10 +353,12 @@ static void start_trans(struct esp8266_spim_priv *priv)
 		_enable_miso(priv);
 		if (priv->rx_el) {
 			/* BIDIR */
+			pr_debug("%s RECV only\n", __func__);
 			data = priv->rx_el->data;
 			len = priv->rx_el->len;
 		} else {
 			/* RECV */
+			pr_debug("%s RECV only\n", __func__);
 			if (_check_recv(b, &data, &len) < 0) {
 				b->error = -EINVAL;
 				bathos_bqueue_server_buf_processed(b);
