@@ -170,6 +170,8 @@ static void _transaction_done(struct esp8266_spim_priv *priv)
 		}
 	}
 	priv->b->error = 0;
+	if (priv->plat->cs_deactivate)
+		priv->plat->cs_deactivate(priv->plat->instance);
 	bathos_bqueue_server_buf_processed(priv->b);
 }
 
@@ -374,6 +376,9 @@ static void start_trans(struct esp8266_spim_priv *priv)
 	}
 	/* And then finally start transaction */
 	priv->b = b;
+	/* Activate cs */
+	if (priv->plat->cs_activate)
+		priv->plat->cs_activate(priv->plat->instance);
 	_start(priv);
 	if (!(USE_INTERRUPTS)) {
 		if (_wait_for_trans_end(priv) < 0)

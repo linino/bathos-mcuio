@@ -20,6 +20,8 @@ struct esp8266_spim_platform_data {
 	uint32_t base;
 	/* Receives instance index, sets up pins via PIN_FUNC_SELECT */
 	int (*setup_pins)(int);
+	void (*cs_activate)(int);
+	void (*cs_deactivate)(int);
 	/* Spi mode ? */
 };
 
