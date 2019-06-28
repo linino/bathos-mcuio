@@ -74,6 +74,7 @@ static void wifi_callback(System_Event_t *evt)
 	}
 }
 
+#ifndef CONFIG_ESP8266_WIFI_DISABLE_AUTO_CONFIG
 static int wifi_init(void)
 {
 	static struct station_config config;
@@ -89,4 +90,16 @@ static int wifi_init(void)
 	wifi_set_event_handler_cb(wifi_callback);
 	return 0;
 }
+#else /* CONFIG_ESP8266_WIFI_DISABLE_AUTO_CONFIG */
+static int wifi_init(void)
+{
+	printf("%s: disabling auto configuration\n", __func__);
+	if (!wifi_station_set_auto_connect(0))
+		printf("%s: wifi_station_set_auto_connect(0) returns false\n");
+	if (!wifi_station_dhcpc_stop())
+		printf("%s: wifi_station_dhcpc_stop() returns false\n");
+	wifi_set_event_handler_cb(wifi_callback);
+	return 0;
+}
+#endif /* CONFIG_ESP8266_WIFI_DISABLE_AUTO_CONFIG */
 core_initcall(wifi_init);

@@ -75,3 +75,8 @@ config ESP8266_SERIAL_RX1_FIFO_INT_THRESHOLD
        default 16 if MCUIO && MCUIO_PIPE_INPUT_PATH=uart1
        default 1
 
+config ESP8266_WIFI_DISABLE_AUTO_CONFIG
+       bool "Disable automatic wlan configuration for the esp8266"
+       default n
+       help
+         "Disable automatic wlan configuration (dhcp & wlan connection)"
