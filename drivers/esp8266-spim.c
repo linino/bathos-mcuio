@@ -418,6 +418,10 @@ static int _spim_init(struct esp8266_spim_priv *priv)
 	writel(1 << SPI_CLOCK_PRESCALER_SHIFT |
 	       4 << SPI_CLOCK_DIVIDER_SHIFT |
 	       ((7 + 1) / 2), plat->base + SPI_CLOCK);
+	/* No direct sysclk to spiclk */
+	v = readl(PERIPHS_IO_MUX);
+	v &= ~(1 << 9);
+	writel(v, PERIPHS_IO_MUX);
 
 	if (plat->setup_pins)
 		return plat->setup_pins(plat->instance);
