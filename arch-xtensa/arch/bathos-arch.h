@@ -6,6 +6,9 @@
 
 #define PROGMEM
 
+void ets_isr_mask(uint32_t v);
+void ets_isr_unmask(uint32_t v);
+
 /*
  * From https://github.com/esp8266/Arduino/pull/649/files and xtensa
  * instruction set manual
@@ -32,22 +35,12 @@ static inline void set_intenable(unsigned v)
 
 static inline void mask_irq(int n)
 {
-	uint32_t m = 1 << n;
-	unsigned v;
-
-	interrupt_disable(v);
-	set_intenable(get_intenable() & ~m);
-	interrupt_restore(v);
+	ets_isr_mask(1 << n);
 }
 
 static inline void unmask_irq(int n)
 {
-	uint32_t m = 1 << n;
-	unsigned v;
-
-	interrupt_disable(v);
-	set_intenable(get_intenable() | m);
-	interrupt_restore(v);
+	ets_isr_unmask(1 << n);
 }
 
 #define __isr __attribute__((section(".isr")))
