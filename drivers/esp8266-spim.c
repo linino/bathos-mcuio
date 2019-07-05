@@ -263,15 +263,19 @@ static int _setup_tx(struct esp8266_spim_priv *priv, void *data,
 {
 	unsigned int i, j;
 	uint8_t *ptr = data;
+	uint32_t v;
+	
 
 	if (data_len > 32)
 		printf("%s: WARNING: tx data truncated to 32 bytes\n",
 		       __func__);
+	v = readl(SPI_USER1 + priv->plat->base);
+	v &= ~(MOSI_BITLEN_MASK << MOSI_BITLEN_SHIFT);
+	v |= ((data_len << 3) & MOSI_BITLEN_MASK) << MOSI_BITLEN_SHIFT;
+	writel(v, SPI_USER1 + priv->plat->base);
 
 	/* Copy data to tx buffer area */
 	for (i = 0; i < data_len; ) {
-		uint32_t v;
-
 		j = i;
 		v = ptr[i++];
 		if (i < data_len)
@@ -289,6 +293,11 @@ static int _setup_rx(struct esp8266_spim_priv *priv, void *data,
 		     unsigned int data_len)
 {
 	/* Nothing to do for the moment */
+	uint32_t v = readl(SPI_USER1 + priv->plat->base);
+
+	v &= ~(MISO_BITLEN_MASK << MISO_BITLEN_SHIFT);
+	v |= ((data_len << 3) & MISO_BITLEN_MASK) << MISO_BITLEN_SHIFT;
+	writel(v, SPI_USER1 + priv->plat->base);
 	return 0;
 }
 
