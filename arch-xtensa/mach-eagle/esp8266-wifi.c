@@ -95,9 +95,11 @@ static int wifi_init(void)
 {
 	printf("%s: disabling auto configuration\n", __func__);
 	if (!wifi_station_set_auto_connect(0))
-		printf("%s: wifi_station_set_auto_connect(0) returns false\n");
+		printf("%s: wifi_station_set_auto_connect(0) returns false\n",
+		       __func__);
 	if (!wifi_station_dhcpc_stop())
-		printf("%s: wifi_station_dhcpc_stop() returns false\n");
+		printf("%s: wifi_station_dhcpc_stop() returns false\n",
+		       __func__);
 	wifi_set_event_handler_cb(wifi_callback);
 	return 0;
 }
