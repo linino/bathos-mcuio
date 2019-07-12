@@ -189,6 +189,34 @@ static inline unsigned int bdescr_data_size(struct bathos_bdescr *b)
 	return out;
 }
 
+static inline int bdescr_sglist_length(struct bathos_bdescr *b)
+{
+	int out = 0;
+	struct bathos_sglist_el *e;
+
+	if (b->data || list_empty(&b->sglist))
+		return out;
+	list_for_each_entry(e, &b->sglist, list)
+		out++;
+	return out;
+}
+
+static inline struct bathos_sglist_el *
+bdescr_get_sglist_el(struct bathos_bdescr *b, unsigned int index)
+{
+	int i;
+	struct bathos_sglist_el *e;
+
+	list_for_each_entry(e, &b->sglist, list) {
+		if (i++ >= index)
+			return e;
+		if (list_is_last(&e->list, &b->sglist))
+			return NULL;
+	}
+	/* NEVER REACHED */
+	return NULL;
+}
+
 static inline void bdescr_remap_release_event(struct bathos_bdescr *b,
 					      const struct event *e)
 {
