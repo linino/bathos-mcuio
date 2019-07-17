@@ -156,10 +156,11 @@ static void _transaction_done(struct esp8266_spim_priv *priv)
 	if (priv->rx_el) {
 		uint8_t *ptr = priv->rx_el->data;
 
-		for (i = 0; i < priv->rx_el->len; i++) {
+		for (i = 0; i < priv->rx_el->len; ) {
 			/* MISO data is in the second half of the buffer */
-			uint32_t v = readl(SPI_W(i) + 32 + priv->plat->base);
+			uint32_t v = readl(SPI_W(i) + priv->plat->base);
 
+			pr_debug("%s: read 0x%08x (%d)\n", __func__, v, i);
 			ptr[i++] = v & 0xff;
 			if (i < priv->rx_el->len)
 				ptr[i++] = (v >> 8) & 0xff;
@@ -223,39 +224,31 @@ static int _check_bidir(struct bathos_bdescr *b,
 }
 
 static int _do_check(struct bathos_bdescr *b,
-		     void **data, unsigned int *len, enum buffer_dir dir)
+		     struct bathos_sglist_el **el, enum buffer_dir dir)
 {
-	if (!b->data && list_empty(&b->sglist))
+	struct bathos_sglist_el *e;
+	if (list_empty(&b->sglist))
 		return -1;
-	if (!list_empty(&b->sglist)) {
-		struct bathos_sglist_el *e;
 
-		list_for_each_entry(e, &b->sglist, list) {
-			if (e->dir == dir) {
-				*data = e->data;
-				*len = e->len;
-				return 0;
-			}
+	list_for_each_entry(e, &b->sglist, list) {
+		if (e->dir == dir) {
+			*el = e;
+			return 0;
 		}
-	}
-	if (b->dir == OUT) {
-		*data = b->data;
-		*len = b->data_size;
-		return 0;
 	}
 	return -1;
 }
 
 static int _check_send(struct bathos_bdescr *b,
-		       void **data, unsigned int *len)
+		       struct bathos_sglist_el **tx_el)
 {
-	return _do_check(b, data, len, OUT);
+	return _do_check(b, tx_el, OUT);
 }
 
-static int _check_recv(struct bathos_bdescr *b, void *data,
-		       unsigned int *len)
+static int _check_recv(struct bathos_bdescr *b,
+		       struct bathos_sglist_el **rx_el)
 {
-	return _do_check(b, data, len, IN);
+	return _do_check(b, rx_el, IN);
 }
 
 static int _setup_tx(struct esp8266_spim_priv *priv, void *data,
@@ -284,6 +277,7 @@ static int _setup_tx(struct esp8266_spim_priv *priv, void *data,
 			v |= ptr[i++] << 16;
 		if (i < data_len)
 			v |= ptr[i++] << 24;
+		pr_debug("%s: writing 0x%08x\n", __func__, v);
 		writel(v, SPI_W(j) + priv->plat->base);
 	}
 	return 0;
@@ -336,21 +330,20 @@ static void start_trans(struct esp8266_spim_priv *priv)
 		}
 		/* FALL THROUGH */
 	case SEND:
-		if (priv->tx_el) {
-			/* BIDIR */
-			data = priv->tx_el->data;
-			len = priv->tx_el->len;
-			pr_debug("%s, BIDIR-SEND: data = %p, len = %d\n",
-				 __func__, data, len);
-		} else {
+		if (!priv->tx_el) {
 			/* SEND */
 			pr_debug("%s: SEND ONLY\n", __func__);
-			if (_check_send(b, &data, &len) < 0) {
+			if (_check_send(b, &priv->tx_el) < 0) {
 				b->error = -EINVAL;
+				printf("%s: Tx only and no tx element\n",
+				       __func__);
 				bathos_bqueue_server_buf_processed(b);
 				return;
 			}
-		}
+		} else
+			pr_debug("%s: BIDIR SEND\n", __func__);
+		data = priv->tx_el->data;
+		len = priv->tx_el->len;
 		_enable_mosi(priv);
 		if (_setup_tx(priv, data, len) < 0) {
 			b->error = -EINVAL;
@@ -362,20 +355,20 @@ static void start_trans(struct esp8266_spim_priv *priv)
 		/* FALL THROUGH: RECV + SEND */
 	case RECV:
 		_enable_miso(priv);
-		if (priv->rx_el) {
-			/* BIDIR */
+		if (!priv->rx_el) {
 			pr_debug("%s RECV only\n", __func__);
-			data = priv->rx_el->data;
-			len = priv->rx_el->len;
-		} else {
-			/* RECV */
-			pr_debug("%s RECV only\n", __func__);
-			if (_check_recv(b, &data, &len) < 0) {
+			if (_check_recv(b, &priv->rx_el) < 0) {
 				b->error = -EINVAL;
 				bathos_bqueue_server_buf_processed(b);
+				printf("%s: Rx only and no rx element\n",
+				       __func__);
 				return;
 			}
-		}
+		} else
+			/* BIDIR */
+			pr_debug("%s BIDIR-RECV\n", __func__);
+		data = priv->rx_el->data;
+		len = priv->rx_el->len;
 		if (_setup_rx(priv, data, len) < 0) {
 			b->error = -EINVAL;
 			bathos_bqueue_server_buf_processed(b);
