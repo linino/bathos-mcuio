@@ -64,6 +64,9 @@
 #  define MOSI_BITLEN_SHIFT 17
 #  define MISO_BITLEN_MASK 0x1ff
 #  define MISO_BITLEN_SHIFT 8
+#  define DUMMY_BITLEN_MASK 0xff
+#  define DUMMY_BITLEN_SHIFT 0
+
 
 #define SPI_USER2	0x24
 #define SPI_PIN		0x2c
@@ -111,6 +114,18 @@ static inline void _do_mosi(struct esp8266_spim_priv *priv, int enable)
 	else
 		v &= ~MOSI_EN;
 	writel(v, priv->plat->base + SPI_USER);
+}
+
+static inline void _enable_dummy(struct esp8266_spim_priv *priv, uint8_t nbits)
+{
+	uint32_t v = readl(priv->plat->base + SPI_USER);
+
+	v |= DUMMY_EN;
+	writel(v, priv->plat->base + SPI_USER);
+
+	v = readl(priv->plat->base + SPI_USER1);
+	v |= (nbits - 1);
+	writel(v, priv->plat->base + SPI_USER1);
 }
 
 static inline void _enable_mosi(struct esp8266_spim_priv *priv)
