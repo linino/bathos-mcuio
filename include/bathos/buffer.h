@@ -204,7 +204,7 @@ static inline int bdescr_sglist_length(struct bathos_bdescr *b)
 static inline struct bathos_sglist_el *
 bdescr_get_sglist_el(struct bathos_bdescr *b, unsigned int index)
 {
-	int i;
+	int i = 0;
 	struct bathos_sglist_el *e;
 
 	list_for_each_entry(e, &b->sglist, list) {
