@@ -17,8 +17,13 @@ static os_event_t bathos_queue[BATHOS_QUEUE_LEN];
 
 static void _bathos_main(os_event_t *events)
 {
-	while(pending_events())
+	unsigned long start = jiffies;
+
+	while(pending_events() && !(time_after(jiffies, start + HZ/2))) {
+		if (time_after(jiffies, start + HZ/3))
+			pr_debug("!!! %lu %lu\n", start, jiffies);
 		handle_events();
+	}
 }
 
 /*
