@@ -157,10 +157,11 @@ static int _wait_for_trans_end(struct esp8266_spim_priv *priv)
 	uint32_t v;
 
 	while(1) {
-		v = readl(SPI_SLAVE + priv->plat->base);
-		if (v & TRANS_DONE)
+		v = readl(SPI_CMD + priv->plat->base);
+		if (!(v & SPI_BUSY))
 			break;
 	}
+	return 0;
 }
 
 static void _transaction_done(struct esp8266_spim_priv *priv)
