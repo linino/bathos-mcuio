@@ -168,6 +168,8 @@ static void _transaction_done(struct esp8266_spim_priv *priv)
 {
 	unsigned int i;
 
+	if (priv->plat->cs_deactivate)
+		priv->plat->cs_deactivate(priv->plat->instance);
 	if (!priv->b)
 		return;
 	if (NOT_READY && priv->send_only) {
@@ -206,8 +208,6 @@ static void _transaction_done(struct esp8266_spim_priv *priv)
 		}
 	}
 	priv->b->error = 0;
-	if (priv->plat->cs_deactivate)
-		priv->plat->cs_deactivate(priv->plat->instance);
 end:
 	bathos_bqueue_server_buf_processed(priv->b);
 }
