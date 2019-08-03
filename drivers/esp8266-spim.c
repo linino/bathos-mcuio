@@ -19,6 +19,20 @@
 #include <user_interface.h>
 #include <mach/hw.h>
 
+#ifdef CONFIG_ESP8266_SPIM_DETECT_NOT_READY
+
+#if CONFIG_ESP8266_SPIM_NOT_READY_CHAR == 0
+# error "Not ready char MUST NOT BE 0"
+#endif
+
+#define NOT_READY (((uint32_t)CONFIG_ESP8266_SPIM_NOT_READY_CHAR) |	\
+		   (((uint32_t)CONFIG_ESP8266_SPIM_NOT_READY_CHAR) << 8) | \
+		   (((uint32_t)CONFIG_ESP8266_SPIM_NOT_READY_CHAR) << 16) | \
+		   (((uint32_t)CONFIG_ESP8266_SPIM_NOT_READY_CHAR) << 24))
+#else
+#define NOT_READY 0
+#endif
+
 /*
  * Don't seem to work for master, as far as I can understand
  * Esp8266 documentation sucks !!!
@@ -74,6 +88,8 @@ struct esp8266_spim_priv {
 	struct bathos_bdescr *b;
 	struct bathos_sglist_el *tx_el;
 	struct bathos_sglist_el *rx_el;
+	uint32_t service_buf[8];
+	int send_only;
 };
 
 declare_event(esp8266_spim_setup);
@@ -153,6 +169,24 @@ static void _transaction_done(struct esp8266_spim_priv *priv)
 
 	if (!priv->b)
 		return;
+	if (NOT_READY && priv->send_only) {
+		uint32_t v;
+
+		/*
+		 * Send only, check for SLAVE NOT READY chars in
+		 * service buffer
+		 */
+		for (i = 0; i < sizeof(priv->service_buf); i += sizeof(v)) {
+			v = readl(SPI_W(i) + priv->plat->base);
+
+			printf("CHECK NOT READY, v = 0x%08x\n", v);
+			if (v == NOT_READY) {
+				pr_debug("SLAVE IS NOT READY !\n");
+				priv->b->error = -EAGAIN;
+				goto end;
+			}
+		}
+	}
 	if (priv->rx_el) {
 		uint8_t *ptr = priv->rx_el->data;
 
@@ -173,6 +207,7 @@ static void _transaction_done(struct esp8266_spim_priv *priv)
 	priv->b->error = 0;
 	if (priv->plat->cs_deactivate)
 		priv->plat->cs_deactivate(priv->plat->instance);
+end:
 	bathos_bqueue_server_buf_processed(priv->b);
 }
 
@@ -316,6 +351,7 @@ static void start_trans(struct esp8266_spim_priv *priv)
 	priv->tx_el = NULL;
 	priv->rx_el = NULL;
 	_disable_all(priv);
+	priv->send_only = 0;
 	/* Setup first */
 	switch (op->type) {
 	case NONE:
@@ -350,8 +386,26 @@ static void start_trans(struct esp8266_spim_priv *priv)
 			bathos_bqueue_server_buf_processed(b);
 			return;
 		}
-		if (op->type == SEND)
+		if (op->type == SEND) {
+			if (NOT_READY) {
+				/*
+				 * Send only. Also enable miso. We have to check
+				 * whether the other end is sending the
+				 * default char
+				 */
+				_enable_miso(priv);
+				/* Add a dummy bit and see what happens */
+				_enable_dummy(priv, 1);
+				if (_setup_rx(priv, priv->service_buf,
+					      sizeof(priv->service_buf)) < 0) {
+					b->error = -EINVAL;
+					bathos_bqueue_server_buf_processed(b);
+					return;
+				}
+				priv->send_only = 1;
+			}
 			break;
+		}
 		/* FALL THROUGH: RECV + SEND */
 	case RECV:
 		_enable_miso(priv);
