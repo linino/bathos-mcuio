@@ -48,6 +48,16 @@ config DEFAULT_ESP8266_PASSWD
        string "Wifi password"
        default "12345678"
 
+config ESP8266_SPIM_DETECT_NOT_READY
+       depends on ESP8266_DRIVERS
+       bool "esp8266 spi master: detect slave not ready condition"
+       default n
+
+config ESP8266_SPIM_NOT_READY_CHAR
+       depends on ESP8266_SPIM_DETECT_NOT_READY
+       hex "esp8266 spi master: not ready character"
+       default 0xaa
+
 config AMBA_DRIVERS
        bool
 
