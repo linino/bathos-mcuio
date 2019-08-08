@@ -13,6 +13,7 @@
 #include <bathos/esp8266-uart.h>
 #include <bathos/esp8266-spim.h>
 #include <bathos/esp8266-wlan.h>
+#include <bathos/bb-spim.h>
 #include <bathos/dev_ops.h>
 #include <bathos/pipe.h>
 #ifdef CONFIG_TASK_LININOIO
@@ -70,18 +71,25 @@ static int _spim_pin_setup(int instance)
 	return 0;
 }
 
-static const struct esp8266_spim_platform_data spim0_pdata = {
+static const struct bb_spim_platform_data spim0_pdata = {
 	.instance = 0,
 	.nbufs = 4,
 	.bufsize = 64,
-	.base = 0x60000100,
-	.setup_pins = _spim_pin_setup,
+	/* MISO, MTDI, GPIO12 */
+	.miso_gpio = 12,
+	/* MOSI, MTCK, GPIO13 */
+	.mosi_gpio = 13,
+	/* SCLK, MTMS, GPIO14 */
+	.clk_gpio = 14,
+	/* CS, MTD0, GPIO15 */
+	.cs_gpio = 15,
+	.clk_freq = 2000,
 };
 
 static struct bathos_dev __spimdev0
 __attribute__((section(".bathos_devices"), aligned(4), used)) = {
 	.name = "spim0",
-	.ops = &esp8266_spim_dev_ops,
+	.ops = &bb_spim_dev_ops,
 	.platform_data = &spim0_pdata,
 };
 
