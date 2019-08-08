@@ -62,6 +62,10 @@ ifeq ($(CONFIG_BP_SPIM_DRIVER), y)
   DRV_OBJS += drivers/bp-spim.o
 endif
 
+ifeq ($(CONFIG_BB_SPIM_DRIVER), y)
+  DRV_OBJS += drivers/bb-spim.o
+endif
+
 DRV_OBJS += drivers/radio-bridge-master.o
 DRV_OBJS += drivers/radio-bridge-slave.o
 

@@ -78,4 +78,18 @@ config BP_SPIM_DRIVER
        tristate "Bus pirate spi master driver"
        depends on PIPE_ASYNC_INTERFACE && ARCH_UNIX
 
+config BB_SPIM_DRIVER
+       tristate "Bitbang spi master driver"
+       depends on PIPE_ASYNC_INTERFACE
+
+config BB_SPIM_DETECT_NOT_READY
+       depends on BB_SPIM_DRIVER
+       bool "bitbang spi master: detect slave not ready condition"
+       default n
+
+config BB_SPIM_NOT_READY_CHAR
+       depends on BB_SPIM_DETECT_NOT_READY
+       hex "bitbang spi master: not ready character"
+       default 0xaa
+
 endmenu
