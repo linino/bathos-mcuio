@@ -20,6 +20,7 @@ LIB_OBJS += lib/allocator-tables.o
 LIB_OBJS += lib/shell.o
 LIB_OBJS += lib/irq.o
 LIB_OBJS += lib/cmdline.o
+LIB_OBJS += lib/buffer.o
 
 ifeq ($(CONFIG_HAVE_LWIP),y)
 LIB_OBJS += lib/tcp-lwip-raw.o

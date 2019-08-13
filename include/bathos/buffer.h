@@ -217,6 +217,9 @@ bdescr_get_sglist_el(struct bathos_bdescr *b, unsigned int index)
 	return NULL;
 }
 
+extern int bdescr_copy_lin(struct bathos_bdescr *b, void *ptr);
+
+
 static inline void bdescr_remap_release_event(struct bathos_bdescr *b,
 					      const struct event *e)
 {
