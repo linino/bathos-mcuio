@@ -29,6 +29,14 @@ struct esp8266_wlan_priv {
 	void *buffer_area;
 };
 
+/*
+ * Can't have more than one open instance. Unfortunately an ets_task handler
+ * cannot receive some void pointer for private data, so the easiest way to
+ * work around this is having a global private data structure and allow for
+ * one instance;
+ */
+static struct esp8266_wlan_priv _priv;
+
 declare_event(esp8266_wlan_setup);
 declare_event(esp8266_wlan_done);
 
@@ -207,10 +215,12 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 	if (!pipe_mode_is_async(pipe))
 		return -EINVAL;
 
-	priv = bathos_alloc_buffer(sizeof(*priv));
-	if (!priv)
+	priv = &_priv;
+	if (priv->plat) {
+		printf("JUST ONE OPEN INSTANCE ALLOWED FOR THIS DRIVER\n");
 		return -ENOMEM;
-
+	}
+	
 	priv->plat = plat;
 	INIT_LIST_HEAD(&priv->rx_queue);
 	INIT_LIST_HEAD(&priv->tx_queue);
