@@ -37,6 +37,8 @@ struct esp8266_wlan_priv {
  */
 static struct esp8266_wlan_priv _priv;
 
+static struct ETSEventTag _queue[QUEUE_LEN];
+
 declare_event(esp8266_wlan_setup);
 declare_event(esp8266_wlan_done);
 
@@ -183,14 +185,8 @@ extern void ets_task(void (*t)(struct ETSEventTag *), int, struct ETSEventTag *,
 
 static void wifi_connected_event_handler(struct event_handler_data *ed)
 {
-	static struct ETSEventTag *queue;
-
-	queue = bathos_alloc_buffer(sizeof(struct ETSEventTag) * QUEUE_LEN);
-	if (!queue) {
-		printf("could not allocate queue\n");
-		return;
-	}
-	ets_task(raw_input_task, RAW_INPUT_TASK_PRIO, queue, QUEUE_LEN);
+	ets_task(raw_input_task, RAW_INPUT_TASK_PRIO,
+		 _queue, ARRAY_SIZE(_queue));
 }
 declare_event_handler(wifi_connected, NULL,
 		      wifi_connected_event_handler, NULL);
