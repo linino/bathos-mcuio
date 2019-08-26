@@ -184,7 +184,7 @@ static void wifi_connected_event_handler(struct event_handler_data *ed)
 	}
 	ets_task(raw_input_task, RAW_INPUT_TASK_PRIO, queue, QUEUE_LEN);
 }
-declare_event_handler(esp8266_wifi_connected, NULL,
+declare_event_handler(wifi_connected, NULL,
 		      wifi_connected_event_handler, NULL);
 
 static int esp8266_wlan_async_open(void *_priv)
