@@ -37,8 +37,9 @@ static void start_tx(struct esp8266_wlan_priv *priv)
 	struct netif *netif = (struct netif *)eagle_lwip_getif(0);
 	struct bathos_bdescr *b;
 	struct bathos_buffer_op *op;
-	struct pbuf *pbuf;
+	struct pbuf *pbuf = NULL;
 	uint8_t mac[6];
+	int data_size, pbuf_size, pbuf_data_offset = 0;
 
 	wifi_get_macaddr(STATION_IF, mac);
 	if (!netif) {
@@ -49,29 +50,39 @@ static void start_tx(struct esp8266_wlan_priv *priv)
 		/* Nothing in list, should not happen */
 		return;
 	b = list_first_entry(&priv->tx_queue, struct bathos_bdescr, list);
+	pbuf_size = data_size = bdescr_data_size(b);
+	pr_debug("pbuf_size = %d\n", pbuf_size);
 	op = to_operation(b);
-	pbuf = pbuf_alloc(PBUF_RAW, b->data_size + 14, PBUF_RAM);
+	if (op->addr.type == REMOTE_MAC) {
+		pbuf_data_offset = 14;
+		pbuf_size += pbuf_data_offset;
+	}
+	pbuf = pbuf_alloc(PBUF_RAW, pbuf_size, PBUF_RAM);
 	if (!pbuf) {
 		printf("ERR: %s, error in pbuf allocation\n", __func__);
 		return;
 	}
-	printf("%s: sending packet\n", __func__);
-	/* FIXME: AVOID COPIES ? */
-	/* Copy destination address */
-	memcpy(pbuf->payload, op->addr.val.b, 6);
-	/* Copy source address */
-	memcpy(pbuf->payload + 6, mac, 6);
-	/* HACK: Copy ethernet type from dest address */
-	memcpy(pbuf->payload + 12, &op->addr.val.b[6], 2);
+	pr_debug("%s: sending packet, pbuf = %p\n", __func__, pbuf);
+	if (op->addr.type == REMOTE_MAC) {
+		/* FIXME: AVOID COPIES ? */
+		/* Copy destination address */
+		memcpy(pbuf->payload, op->addr.val.b, 6);
+		/* Copy source address */
+		memcpy(pbuf->payload + 6, mac, 6);
+		/* HACK: Copy ethernet type from dest address */
+		memcpy(pbuf->payload + 12, &op->addr.val.b[6], 2);
+	}
 	/* Copy rest of packet */
-	memcpy(pbuf->payload + 14, b->data, b->data_size);
+	bdescr_copy_lin(b, pbuf->payload + pbuf_data_offset);
+#ifdef DEBUG
 	{
 		int i;
-		unsigned char *ptr = b->data;
+		unsigned char *ptr = pbuf->payload;
 
-		for (i = 0; i < b->data_size; i++)
+		for (i = 0; i < data_size; i++)
 			printf("0x%02x ", ptr[i]);
 	}
+#endif
 	ieee80211_output_pbuf(netif, pbuf);
 	bathos_bqueue_server_buf_done(b);
 }
