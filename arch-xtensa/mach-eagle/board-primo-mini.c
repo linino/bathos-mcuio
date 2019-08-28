@@ -50,9 +50,10 @@ void console_putc(int c)
 }
 #endif
 
+/* Actually these are rx buffers */
 const struct esp8266_wlan_platform_data wlan0_pdata = {
-	.nbufs = 4,
-	.bufsize = 64,
+	.nbufs = 2,
+	.bufsize = 1600,
 };
 
 static struct bathos_dev __wdev0
