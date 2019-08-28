@@ -64,6 +64,7 @@ int bathos_bqueue_server_init_dir(struct bathos_bqueue *q,
 		op->operand.data = data_ptr;
 		op->operand.queue = q;
 		memset(op->addr.val.b, 0xff, sizeof(op->addr.val));
+		INIT_LIST_HEAD(&op->operand.sglist);
 		list_add(&op->operand.list, list);
 		printf("added %p (dir = %d) to buf list %p\n",
 		       &op->operand.list, op->operand.dir, list);
