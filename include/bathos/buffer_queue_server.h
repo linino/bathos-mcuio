@@ -13,6 +13,8 @@ struct bathos_bqueue_data {
 	struct bathos_buffer_op *op_area;
 	struct list_head free_bufs;
 	struct list_head busy_bufs;
+	struct list_head free_bufs_rx;
+	struct list_head free_bufs_tx;
 };
 
 struct bathos_bqueue {
@@ -24,13 +26,28 @@ struct bathos_bqueue {
  * Init server side of the queue. Specify setup and done events, address and
  * size of buffer operations area
  */
-int bathos_bqueue_server_init(struct bathos_bqueue *,
+extern int bathos_bqueue_server_init_dir(struct bathos_bqueue *q,
+					 const struct event * PROGMEM setup,
+					 const struct event * PROGMEM done,
+					 void *area,
+					 int nbufs,
+					 int bufsize,
+					 enum bathos_buffer_op_address_type
+					 atype,
+					 enum buffer_dir dir);
+
+static inline
+int bathos_bqueue_server_init(struct bathos_bqueue *q,
 			      const struct event * PROGMEM setup,
 			      const struct event * PROGMEM done,
 			      void *area,
 			      int nbufs,
 			      int bufsize,
-			      enum bathos_buffer_op_address_type addr_type);
+			      enum bathos_buffer_op_address_type addr_type)
+{
+	return bathos_bqueue_server_init_dir(q, setup, done, area, nbufs,
+					     bufsize, addr_type, ANY);
+}
 
 extern void bathos_bqueue_server_buf_done(struct bathos_bdescr *b);
 extern void bathos_bqueue_server_buf_processed(struct bathos_bdescr *b);

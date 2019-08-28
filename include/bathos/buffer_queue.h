@@ -56,7 +56,14 @@ int bathos_bqueue_client_init(struct bathos_bqueue *,
 /*
  * Get a buffer (used by the client in polling mode)
  */
-struct bathos_bdescr *bathos_bqueue_get_buf(struct bathos_bqueue *);
+extern struct bathos_bdescr *bathos_bqueue_get_buf_dir(struct bathos_bqueue *q,
+						       enum buffer_dir dir);
+
+static inline struct bathos_bdescr *
+bathos_bqueue_get_buf(struct bathos_bqueue *q)
+{
+	return bathos_bqueue_get_buf_dir(q, ANY);
+}
 
 /*
  * Start buffer queue: this will result in an available event, so redirect

@@ -85,6 +85,12 @@ bathos_dev_init(struct bathos_dev *dev,
 	out->dev = dev;
 	dev->ll_ops = ops;
 	dev->ll_priv = priv;
+#ifdef 	CONFIG_PIPE_ASYNC_INTERFACE
+	INIT_LIST_HEAD(&out->bqueue.data.free_bufs);
+	INIT_LIST_HEAD(&out->bqueue.data.free_bufs_rx);
+	INIT_LIST_HEAD(&out->bqueue.data.free_bufs_tx);
+	INIT_LIST_HEAD(&out->bqueue.data.busy_bufs);
+#endif
 	return out;
 }
 

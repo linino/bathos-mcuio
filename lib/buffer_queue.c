@@ -20,23 +20,41 @@ int bathos_bqueue_client_init(struct bathos_bqueue *q,
 	return 0;
 }
 
-struct bathos_bdescr *bathos_bqueue_get_buf(struct bathos_bqueue *q)
+struct bathos_bdescr *bathos_bqueue_get_buf_dir(struct bathos_bqueue *q,
+						enum buffer_dir dir)
 {
 	struct bathos_bqueue_data *data = &q->data;
 	struct bathos_bdescr *out;
 	unsigned long flags;
+	struct list_head *free_list;
 
 	if (data->stopped)  {
 		printf("%s: queue is stopped\n", __func__);
 		return NULL;
 	}
+	switch (dir) {
+	case ANY:
+		free_list = &data->free_bufs;
+		break;
+	case OUT:
+		free_list = &data->free_bufs_tx;
+		break;
+	case IN:
+		free_list = &data->free_bufs_rx;
+		break;
+	default:
+		printf("%s: invalid direction %d\n", __func__,
+		       __func__, dir);
+		return NULL;
+	}
+	
 	interrupt_disable(flags);
-	if (list_empty(&data->free_bufs)) {
+	if (list_empty(free_list)) {
 		interrupt_restore(flags);
 		printf("%s: no free bufs\n", __func__);
 		return NULL;
 	}
-	out = list_first_entry(&data->free_bufs, struct bathos_bdescr, list);
+	out = list_first_entry(free_list, struct bathos_bdescr, list);
 	/*
 	 * [atomically] move buffer to the list of busy buffers
 	 */

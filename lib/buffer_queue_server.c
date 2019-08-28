@@ -10,24 +10,39 @@
 #include <bathos/string.h>
 
 
-int bathos_bqueue_server_init(struct bathos_bqueue *q,
-			      const struct event * PROGMEM setup,
-			      const struct event * PROGMEM done,
-			      void *area,
-			      int nbufs,
-			      int bufsize,
-			      enum bathos_buffer_op_address_type addr_type)
+int bathos_bqueue_server_init_dir(struct bathos_bqueue *q,
+				  const struct event * PROGMEM setup,
+				  const struct event * PROGMEM done,
+				  void *area,
+				  int nbufs,
+				  int bufsize,
+				  enum bathos_buffer_op_address_type addr_type,
+				  enum buffer_dir dir)
 {
 	struct bathos_bqueue_data *data = &q->data;
 	struct bathos_buffer_op *op, *op_area;
 	void *data_ptr;
 	int i;
+	struct list_head *list = NULL;
 
 	data->setup_event = setup;
 	data->done_event = done;
 	data->nbufs = nbufs;
-	INIT_LIST_HEAD(&data->busy_bufs);
-	INIT_LIST_HEAD(&data->free_bufs);
+
+	switch (dir) {
+	case ANY:
+		list = &data->free_bufs;
+		break;
+	case OUT:
+		list = &data->free_bufs_tx;
+		break;
+	case IN:
+		list = &data->free_bufs_rx;
+		break;
+	default:
+		printf("ERR: %s, invalid direction %d\n", __func__, dir);
+		return -EINVAL;
+	}
 	if (!nbufs)
 		return 0;
 	if (nbufs < 0) {
@@ -45,12 +60,13 @@ int bathos_bqueue_server_init(struct bathos_bqueue *q,
 	     i++, op++, data_ptr = area ? data_ptr + bufsize : NULL) {
 		op->type = NONE;
 		op->addr.type = addr_type;
+		op->operand.dir = dir;
 		op->operand.data = data_ptr;
 		op->operand.queue = q;
 		memset(op->addr.val.b, 0xff, sizeof(op->addr.val));
-		list_add(&op->operand.list, &data->free_bufs);
-		printf("added %p to free buf list %p\n",
-		       &op->operand.list, &data->free_bufs);
+		list_add(&op->operand.list, list);
+		printf("added %p (dir = %d) to buf list %p\n",
+		       &op->operand.list, op->operand.dir, list);
 	}
 	return 0;
 }
@@ -61,12 +77,29 @@ void bathos_bqueue_server_buf_done(struct bathos_bdescr *b)
 	struct bathos_bqueue_data *data = &q->data;
 	unsigned long flags;
 	int free_list_was_empty = 0;
+	struct list_head *free_list;
+
+	switch (b->dir) {
+	case ANY:
+		free_list = &data->free_bufs;
+		break;
+	case OUT:
+		free_list = &data->free_bufs_tx;
+		break;
+	case IN:
+		free_list = &data->free_bufs_rx;
+		break;
+	default:
+		printf("%s: buffer %p has invalid direction %d\n", __func__,
+		       b, b->dir);
+		return;
+	}
 
 	/* Atomically move buffer to free list */
 	interrupt_disable(flags);
-	if (list_empty(&data->free_bufs))
+	if (list_empty(free_list))
 		free_list_was_empty = 1;
-	list_move(&b->list, &data->free_bufs);
+	list_move(&b->list, free_list);
 	interrupt_restore(flags);
 	if (data->available_event && free_list_was_empty) {
 		pr_debug("%s: triggering available event (%p)\n", __func__,
