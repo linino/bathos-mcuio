@@ -211,11 +211,12 @@ int pipe_ioctl(struct bathos_pipe *pipe, struct bathos_ioctl_data *data)
 
 #ifdef CONFIG_PIPE_ASYNC_INTERFACE
 
-struct bathos_bdescr *pipe_async_get_buf(struct bathos_pipe *pipe)
+struct bathos_bdescr *pipe_async_get_buf_dir(struct bathos_pipe *pipe,
+					     enum buffer_dir dir)
 {
 	if (!pipe->dev->ops->get_bqueue)
 		return NULL;
-	return bathos_bqueue_get_buf(pipe->dev->ops->get_bqueue(pipe));
+	return bathos_bqueue_get_buf_dir(pipe->dev->ops->get_bqueue(pipe), dir);
 }
 
 int pipe_async_start(struct bathos_pipe *pipe)

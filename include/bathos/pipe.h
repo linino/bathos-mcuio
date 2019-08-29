@@ -87,10 +87,23 @@ void __pipe_trigger_event(struct bathos_pipe *p, const struct event *evt,
 
 #ifdef CONFIG_PIPE_ASYNC_INTERFACE
 
-struct bathos_bdescr *pipe_async_get_buf(struct bathos_pipe *);
+extern struct bathos_bdescr *pipe_async_get_buf_dir(struct bathos_pipe *p,
+						    enum buffer_dir dir);
+
+static inline struct bathos_bdescr *pipe_async_get_buf(struct bathos_pipe *p)
+{
+	return pipe_async_get_buf_dir(p, ANY);
+}
+
 int pipe_async_start(struct bathos_pipe *);
 
 #else /* !CONFIG_PIPE_ASYNC_INTERFACE */
+
+static inline struct bathos_bdescr *
+pipe_async_get_buf_dir(struct bathos_pipe *p, enum buffer_dir dir)
+{
+	return NULL;
+}
 
 static inline struct bathos_bdescr *pipe_async_get_buf(struct bathos_pipe *p)
 {
