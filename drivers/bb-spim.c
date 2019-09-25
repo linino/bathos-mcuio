@@ -4,7 +4,6 @@
  * Author: Davide Ciminaghi <ciminaghi@gnudd.com>
  */
 /* gpio bitbang spi master driver */
-#define DEBUG 1
 #include <bathos/bathos.h>
 #include <bathos/pipe.h>
 #include <bathos/init.h>
