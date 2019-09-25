@@ -92,7 +92,8 @@ static void _transaction_done(struct bb_spim_priv *priv, char *rx_data,
 			}
 		}
 	}
-
+	/* Remove buffer from queue and release it to client */
+	list_del_init(&priv->b->list);
 	bathos_bqueue_server_buf_processed(priv->b);
 }
 
@@ -292,6 +293,7 @@ static void start_trans(struct bb_spim_priv *priv)
 	case BIDIR:
 		if (_check_bidir(b, &priv->tx_el, &priv->rx_el) < 0) {
 			b->error = -EINVAL;
+			list_del_init(&b->list);
 			bathos_bqueue_server_buf_processed(b);
 			return;
 		}
@@ -304,6 +306,7 @@ static void start_trans(struct bb_spim_priv *priv)
 				b->error = -EINVAL;
 				printf("%s: Tx only and no tx element\n",
 				       __func__);
+				list_del_init(&b->list);
 				bathos_bqueue_server_buf_processed(b);
 				return;
 			}
@@ -331,6 +334,7 @@ static void start_trans(struct bb_spim_priv *priv)
 			pr_debug("%s RECV only\n", __func__);
 			if (_check_recv(b, &priv->rx_el) < 0) {
 				b->error = -EINVAL;
+				list_del_init(&b->list);
 				bathos_bqueue_server_buf_processed(b);
 				printf("%s: Rx only and no rx element\n",
 				       __func__);
@@ -553,6 +557,7 @@ static int bb_spim_close(struct bathos_pipe *pipe)
 	list_for_each_entry_safe(b, tmp, &priv->queue, list) {
 		/* buffer queue is being killed */
 		b->error = -EPIPE;
+		list_del_init(&b->list);
 		bathos_bqueue_server_buf_processed_immediate(b);
 	}
 	/* Stop and finalize the queue */
