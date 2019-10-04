@@ -47,18 +47,40 @@ int gpio_request_events(int gpio, int flags)
 	if (!enable) {
 		gpio_pin_intr_state_set(gpio, GPIO_PIN_INTR_DISABLE);
 		bathos_disable_irq(GPIO_IRQN);
+		pr_debug("%s: disabling irq for gpio %d\n", __func__, gpio);
 		return 0;
 	}
-	if ((flags & GPIO_EVT_ANY_EDGE) == GPIO_EVT_ANY_EDGE)
+	if ((flags & GPIO_EVT_ANY_EDGE) == GPIO_EVT_ANY_EDGE) {
 		gpio_pin_intr_state_set(gpio, GPIO_PIN_INTR_ANYEDGE);
-	if (flags & GPIO_EVT_RISING)
+		pr_debug("%s: irq on both edges for gpio %d\n", __func__,
+			 gpio);
+		goto end;
+	}
+	if (flags & GPIO_EVT_RISING) {
 		gpio_pin_intr_state_set(gpio, GPIO_PIN_INTR_POSEDGE);
-	if (flags & GPIO_EVT_FALLING)
+		pr_debug("%s: irq on rising edge for gpio %d\n", __func__,
+			 gpio);
+		goto end;
+	}
+	if (flags & GPIO_EVT_FALLING) {
 		gpio_pin_intr_state_set(gpio, GPIO_PIN_INTR_NEGEDGE);
-	if (flags & GPIO_EVT_LOW)
+		pr_debug("%s: irq on falling edge for gpio %d\n", __func__,
+			 gpio);
+		goto end;
+	}
+	if (flags & GPIO_EVT_LOW) {
 		gpio_pin_intr_state_set(gpio, GPIO_PIN_INTR_LOLEVEL);
-	if (flags & GPIO_EVT_HIGH)
+		pr_debug("%s: irq on low level for gpio %d\n", __func__,
+			 gpio);
+		goto end;
+	}
+	if (flags & GPIO_EVT_HIGH) {
 		gpio_pin_intr_state_set(gpio, GPIO_PIN_INTR_HILEVEL);
-	bathos_enable_irq(GPIO_IRQN);
+		pr_debug("%s: irq on high level for gpio %d\n", __func__,
+			 gpio);
+		goto end;
+	}
+end:
+	bathos_enable_irq(GPIO_IRQN);	
 	return 0;
 }
