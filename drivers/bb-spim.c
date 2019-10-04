@@ -216,6 +216,27 @@ static void _do_byte(struct bb_spim_priv *priv, const char *tx, char *rx)
 }
 #endif
 
+#ifdef DEBUG
+static inline void dump_rx_data(const char *rx_data, unsigned int rx_len)
+{
+	int i;
+
+	printf("Received:\n");
+	for (i = 0; i < rx_len; i++) {
+		printf("0x%02x (%c)\t", rx_data[i],
+			 rx_data[i] > 0 && rx_data[i] < 128 ?
+			 rx_data[i] : '.');
+		if (i && !((i + 1) % 4))
+			printf("\n");
+	}
+	printf("\n");
+}
+#else
+static inline void dump_rx_data(char *rx_data, unsigned int rx_len)
+{
+}
+#endif
+
 static void _do_transaction(struct bb_spim_priv *priv, const char *tx_data,
 			    unsigned int tx_len,
 			    char *rx_data, unsigned int rx_len,
@@ -252,17 +273,8 @@ static void _do_transaction(struct bb_spim_priv *priv, const char *tx_data,
 		}
 		pr_debug("\n");
 	}
-	if (rx_data) {
-		pr_debug("Received:\n");
-		for (i = 0; i < rx_len; i++) {
-			pr_debug("0x%02x (%c)\t", rx_data[i],
-				 rx_data[i] > 0 && rx_data[i] < 128 ?
-				 rx_data[i] : '.');
-			if (i && !((i + 1) % 4))
-				pr_debug("\n");
-		}
-		pr_debug("\n");
-	}
+	if (rx_data)
+		dump_rx_data(rx_data, rx_len);
 }
 
 static void start_trans(struct bb_spim_priv *priv)
