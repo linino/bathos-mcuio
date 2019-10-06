@@ -100,7 +100,10 @@ void bathos_bqueue_server_buf_done(struct bathos_bdescr *b)
 	interrupt_disable(flags);
 	if (list_empty(free_list))
 		free_list_was_empty = 1;
-	list_move(&b->list, free_list);
+	if (!list_empty(&b->list))
+		list_move(&b->list, free_list);
+	else
+		list_add(&b->list, free_list);
 	interrupt_restore(flags);
 	if (data->available_event && free_list_was_empty) {
 		pr_debug("%s: triggering available event (%p)\n", __func__,
