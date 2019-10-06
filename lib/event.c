@@ -20,7 +20,7 @@
 #include <bathos/irq-controller.h>
 #endif
 
-#define PENDING_EVENTS_POOL_SIZE 64
+#define PENDING_EVENTS_POOL_SIZE 512
 
 /*
  * Pending events are stored in a circular buffer, no list of pending events,
