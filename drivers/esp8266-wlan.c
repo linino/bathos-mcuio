@@ -29,6 +29,8 @@ struct esp8266_wlan_priv {
 	void *buffer_area;
 };
 
+static uint8_t _buffer_area[1514*2];
+
 /*
  * Can't have more than one open instance. Unfortunately an ets_task handler
  * cannot receive some void pointer for private data, so the easiest way to
@@ -220,41 +222,52 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 	priv->plat = plat;
 	INIT_LIST_HEAD(&priv->rx_queue);
 	INIT_LIST_HEAD(&priv->tx_queue);
-	priv->buffer_area = bathos_alloc_buffer(plat->nbufs * plat->bufsize);
-	if (!priv->buffer_area) {
-		ret = -ENOMEM;
-		goto error0;
-	}
+	priv->buffer_area = _buffer_area;
 	pipe->dev_data = bathos_dev_init(dev, &esp8266_wlan_ll_dev_ops, priv);
 	if (!pipe->dev_data) {
 		ret = -ENOMEM;
-		goto error1;
+		goto error0;
 	}
 	ret = bathos_dev_open(pipe);
 	if (ret < 0)
-		goto error2;
+		goto error1;
 	if (pipe->mode & BATHOS_MODE_ASYNC) {
 		struct bathos_bqueue *q = dev->ops->get_bqueue ?
 			dev->ops->get_bqueue(pipe) : NULL;
+		struct event *se = &event_name(esp8266_wlan_setup);
+		struct event *de = &event_name(esp8266_wlan_done);
 
 		if (!q)
-			goto error2;
-		ret = bathos_bqueue_server_init(q,
-						&event_name(esp8266_wlan_setup),
-						&event_name(esp8266_wlan_done),
-						priv->buffer_area,
-						plat->nbufs,
-						plat->bufsize,
-						REMOTE_MAC);
+			goto error1;
+		ret = bathos_bqueue_server_init_dir(q,
+						    se,
+						    de,
+						    NULL,
+						    /*
+						     * Two "empty" buffers
+						     * for tx
+						     */
+						    2,
+						    0,
+						    REMOTE_MAC,
+						    OUT);
+		if (ret < 0)
+			goto error1;
+		ret = bathos_bqueue_server_init_dir(q,
+						    se,
+						    de,
+						    priv->buffer_area,
+						    2,
+						    1514,
+						    REMOTE_MAC,
+						    IN);
 	}
 	if (ret)
-		goto error2;
+		goto error1;
 	return ret;
 
-error2:
-	bathos_dev_uninit(pipe);
 error1:
-	bathos_free_buffer(priv->buffer_area, plat->nbufs * plat->bufsize);
+	bathos_dev_uninit(pipe);
 error0:
 	bathos_free_buffer(priv, sizeof(*priv));
 	return ret;
@@ -285,7 +298,6 @@ static int esp8266_wlan_close(struct bathos_pipe *pipe)
 	/* Free the remaining resources */
 	bathos_dev_close(pipe);
 	bathos_dev_uninit(pipe);
-	bathos_free_buffer(priv->buffer_area, plat->nbufs * plat->bufsize);
 	bathos_free_buffer(priv, sizeof(*priv));
 	return 0;
 }
