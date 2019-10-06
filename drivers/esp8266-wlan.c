@@ -115,7 +115,7 @@ static void esp8266_wlan_setup_handler(struct event_handler_data *ed)
 	struct bathos_bqueue *q;
 	struct esp8266_wlan_priv *priv;
 
-	printf("%s\n", __func__);
+	pr_debug("%s, buffer = %p\n", __func__, b);
 	if (!b) {
 		printf("%s: ERR, buffer is NULL\n", __func__);
 		return;
@@ -162,7 +162,7 @@ static void esp8266_wlan_done_handler(struct event_handler_data *ed)
 {
 	struct bathos_bdescr *b = ed->data;
 
-	printf("%s\n", __func__);
+	pr_debug("%s, buffer %p\n", __func__, b);
 	if (!b) {
 		printf("%s: ERR, buffer is NULL\n", __func__);
 		return;
