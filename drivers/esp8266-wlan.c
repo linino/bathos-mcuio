@@ -43,6 +43,7 @@ static struct ETSEventTag _queue[QUEUE_LEN];
 
 declare_event(esp8266_wlan_setup);
 declare_event(esp8266_wlan_done);
+declare_event(esp8266_input_packet);
 
 static void start_tx(struct esp8266_wlan_priv *priv)
 {
@@ -171,17 +172,46 @@ static void esp8266_wlan_done_handler(struct event_handler_data *ed)
 declare_event_handler(esp8266_wlan_done, NULL, esp8266_wlan_done_handler,
 		      NULL);
 
+static void esp8266_input_packet_handler(struct event_handler_data *ed)
+{
+	struct esp8266_wlan_priv *priv = &_priv;
+	struct bathos_bdescr *b;
+	struct pbuf *p = ed->data, *ptr;
+	uint8_t buf[16];
+	int  i, copied, l;
+
+	pr_debug("%s, pbuf = %p\n", __func__, p);
+	if (list_empty(&priv->rx_queue)) {
+		printf("%s: empty rx queue, throwing away\n", __func__);
+		goto end;
+	}
+	b = list_first_entry(&priv->rx_queue, struct bathos_bdescr, list);
+	if (!b->data) {
+		printf("%s: only supporting straight buffers\n", __func__);
+		goto end;
+	}
+	/* FIXME: CHECK HOW MUCH FREE SPACE IS IN THE BUFFER */
+	for (ptr = p, copied = 0; ; ptr = ptr->next) {
+		memcpy(&b->data[copied], ptr->payload, ptr->len);
+		copied += ptr->len;
+		if (ptr->tot_len == ptr->len)
+			break;
+	}
+	b->data_size = copied;
+	list_del_init(&b->list);
+	bathos_bqueue_server_buf_processed(b);
+end:
+	pbuf_free(p);
+}
+declare_event_handler(esp8266_input_packet, NULL, esp8266_input_packet_handler,
+		      NULL);
+
 static void raw_input_task(struct ETSEventTag *e)
 {
-	struct pbuf *ptr = (struct pbuf *)(e->par);
-	uint8_t buf[16];
-	int  i;
+	struct pbuf *p = (struct pbuf *)(e->par);
 
-	printf("%s, pbuf = %p\n", __func__, ptr);
-	memcpy(buf, ptr->payload, sizeof(buf));
-	for (i = 0; i < sizeof(buf); i++)
-		printf("0x%02x ", buf[i]);
-	printf("\n");
+	if (trigger_event(&evt_esp8266_input_packet, p) < 0)
+		printf("%s: events overflow\n", __func__);
 }
 
 /* Prototype is missing !? */
