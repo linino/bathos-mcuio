@@ -30,7 +30,7 @@ IO_OBJ =
 LIBARCH = $(BUILD_DIR)/$(ADIR)/libarch.a
 LIBARCH_OBJS = $(ADIR)/jiffies.o
 
-ARCH_EXTRA_LIBS = -lhal -lpp -lphy -lnet80211 -llwip -lwpa -lmain
+ARCH_EXTRA_LIBS = -lhal -lpp -lphy -lnet80211 -llwip_open -lwpa -lmain
 
 ifeq ($(CONFIG_MACH_EAGLE),y)
 AOBJ += $(MACH_DIR)/esp8266-wifi.o
