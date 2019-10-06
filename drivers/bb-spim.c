@@ -429,7 +429,6 @@ static void bb_spim_setup_handler(struct event_handler_data *ed)
 	struct bathos_bqueue *q;
 	struct bb_spim_priv *priv;
 
-	printf("%s\n", __func__);
 	if (!b) {
 		printf("%s: ERR, buffer is NULL\n", __func__);
 		return;
@@ -479,7 +478,6 @@ static void bb_spim_done_handler(struct event_handler_data *ed)
 {
 	struct bathos_bdescr *b = ed->data;
 
-	printf("%s\n", __func__);
 	if (!b) {
 		printf("%s: ERR, buffer is NULL\n", __func__);
 		return;
