@@ -348,3 +348,5 @@ PROVIDE ( Td4s = 0x3fffd500);
 PROVIDE ( rcons = 0x3fffd0f0);
 PROVIDE ( UartDev = 0x3fffde10 );
 PROVIDE ( flashchip = 0x3fffc714);
+PROVIDE ( Enable_QMode = 0x400044c0 );
+PROVIDE ( DEBUG_printf = pp_printf );

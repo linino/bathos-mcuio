@@ -45,7 +45,5 @@ static inline void unmask_irq(int n)
 
 #define __isr __attribute__((section(".isr")))
 
-void ets_isr_attach(int intr, void *handler, void *arg);
-
 #endif /* __BATHOS_ARCH_H__ */
 

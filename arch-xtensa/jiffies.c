@@ -9,10 +9,6 @@
 
 volatile unsigned long jiffies;
 
-extern void ets_timer_setfn(volatile os_timer_t *t, ETSTimerFunc *fn,
-			    void *parg);
-void ets_timer_arm_new(volatile os_timer_t *a, int b, int c, int isMstimer);
-
 
 static volatile os_timer_t jiffies_timer;
 
