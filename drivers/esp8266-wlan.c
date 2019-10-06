@@ -72,7 +72,8 @@ static void start_tx(struct esp8266_wlan_priv *priv)
 	pbuf = pbuf_alloc(PBUF_RAW, pbuf_size, PBUF_RAM);
 	if (!pbuf) {
 		printf("ERR: %s, error in pbuf allocation\n", __func__);
-		return;
+		b->error = -ENOMEM;
+		goto end;
 	}
 	pr_debug("%s: sending packet, pbuf = %p\n", __func__, pbuf);
 	if (op->addr.type == REMOTE_MAC) {
@@ -96,7 +97,10 @@ static void start_tx(struct esp8266_wlan_priv *priv)
 	}
 #endif
 	ieee80211_output_pbuf(netif, pbuf);
-	bathos_bqueue_server_buf_done(b);
+	pbuf_free(pbuf);
+end:
+	list_del_init(&b->list);
+	bathos_bqueue_server_buf_processed(b);
 }
 
 /*
