@@ -22,6 +22,8 @@
 #define RAW_INPUT_TASK_PRIO 28
 #define QUEUE_LEN 4
 
+#define MAX_CUSTOM_PBUFS 128
+
 struct esp8266_wlan_priv {
 	const struct esp8266_wlan_platform_data *plat;
 	struct list_head rx_queue;
@@ -45,40 +47,20 @@ declare_event(esp8266_wlan_setup);
 declare_event(esp8266_wlan_done);
 declare_event(esp8266_input_packet);
 
-static void start_tx(struct esp8266_wlan_priv *priv)
+struct pbuf *_setup_pbuf_copy(struct bathos_bdescr *b,
+			      struct bathos_buffer_op *op)
 {
-	struct netif *netif = (struct netif *)eagle_lwip_getif(0);
-	struct bathos_bdescr *b;
-	struct bathos_buffer_op *op;
-	struct pbuf *pbuf = NULL;
+	int pbuf_size, pbuf_data_offset = op->addr.type == REMOTE_MAC ? 14 : 0;
+	struct pbuf *pbuf;
 	uint8_t mac[6];
-	int data_size, pbuf_size, pbuf_data_offset = 0;
 
+	pr_debug("%s, b = %p\n", __func__, b);
 	wifi_get_macaddr(STATION_IF, mac);
-	if (!netif) {
-		printf("ERR: %s, could not get interface\n", __func__);
-		return;
-	}
-	if (list_empty(&priv->tx_queue))
-		/* Nothing in list, should not happen */
-		return;
-	b = list_first_entry(&priv->tx_queue, struct bathos_bdescr, list);
-	pbuf_size = data_size = bdescr_data_size(b);
-	pr_debug("pbuf_size = %d\n", pbuf_size);
-	op = to_operation(b);
-	if (op->addr.type == REMOTE_MAC) {
-		pbuf_data_offset = 14;
-		pbuf_size += pbuf_data_offset;
-	}
+	pbuf_size = bdescr_data_size(b) + pbuf_data_offset;
 	pbuf = pbuf_alloc(PBUF_RAW, pbuf_size, PBUF_RAM);
-	if (!pbuf) {
-		printf("ERR: %s, error in pbuf allocation\n", __func__);
-		b->error = -ENOMEM;
-		goto end;
-	}
-	pr_debug("%s: sending packet, pbuf = %p\n", __func__, pbuf);
+	if (!pbuf)
+		return pbuf;
 	if (op->addr.type == REMOTE_MAC) {
-		/* FIXME: AVOID COPIES ? */
 		/* Copy destination address */
 		memcpy(pbuf->payload, op->addr.val.b, 6);
 		/* Copy source address */
@@ -93,15 +75,115 @@ static void start_tx(struct esp8266_wlan_priv *priv)
 		int i;
 		unsigned char *ptr = pbuf->payload;
 
-		for (i = 0; i < data_size; i++)
+		for (i = 0; i < pbuf_size; i++)
 			printf("0x%02x ", ptr[i]);
 	}
 #endif
+	return pbuf;
+}
+
+struct my_pbuf_custom {
+	struct pbuf_custom pc;
+	struct bathos_bdescr *b;
+	struct list_head list;
+};
+
+#define to_my_pbc(a) \
+	container_of(a, struct my_pbuf_custom, pc.pbuf)
+
+struct list_head free_custom_pbufs;
+
+static void _free_pbuf(struct pbuf *pbuf)
+{
+	struct my_pbuf_custom *pbc;
+
+	if (!pbuf)
+		return;
+	pbc = to_my_pbc(pbuf);
+	if (pbc->b) {
+		bathos_bqueue_server_buf_processed(pbc->b);
+		pbc->b = NULL;
+	}
+	list_add_tail(&pbc->list, &free_custom_pbufs);
+};
+
+static struct my_pbuf_custom custom_pbufs[MAX_CUSTOM_PBUFS] = {
+	[0 ... MAX_CUSTOM_PBUFS - 1] = {
+		.pc.custom_free_function = _free_pbuf,
+	},
+};
+
+static struct my_pbuf_custom *_get_pbc(void)
+{
+	struct my_pbuf_custom *out = NULL;
+
+	if (list_empty(&free_custom_pbufs))
+		return NULL;
+	out = list_first_entry(&free_custom_pbufs, struct my_pbuf_custom, list);
+	list_del_init(&out->list);
+	return out;
+}
+
+struct pbuf *_setup_pbuf_zerocopy(struct bathos_bdescr *b)
+{
+	struct my_pbuf_custom *pbc;
+	struct pbuf *out = NULL;
+
+	pbc = _get_pbc();
+	if (!pbc) {
+		printf("%s: NO FREE pbuf\n", __func__);
+		_free_pbuf(out);
+		b->error = -ENOMEM;
+		return NULL;
+	}
+	out = pbuf_alloced_custom(PBUF_RAW, b->data_size, PBUF_RAM,
+				  &pbc->pc, b->data, b->data_size);
+	if (!out) {
+		printf("%s: pbuf_alloced_custom returns error\n", __func__);
+		_free_pbuf(out);
+		b->error = -EINVAL;
+		return NULL;
+	}
+	pbc->b = b;
+	return out;
+}
+
+static struct pbuf *_setup_pbuf(struct bathos_bdescr *b, int *free_now)
+{
+	struct bathos_buffer_op *op = to_operation(b);
+	struct pbuf *out;
+
+	if (op->addr.type == REMOTE_MAC || !b->data) {
+		return _setup_pbuf_copy(b, op);
+		*free_now = 1;
+	}
+	out = _setup_pbuf_zerocopy(b);
+	*free_now = out == NULL;
+	return out;
+}
+
+
+static void start_tx(struct esp8266_wlan_priv *priv)
+{
+	struct netif *netif = (struct netif *)eagle_lwip_getif(0);
+	struct bathos_bdescr *b;
+	struct pbuf *pbuf = NULL;
+	int free_now;
+
+	if (!netif) {
+		printf("ERR: %s, could not get interface\n", __func__);
+		return;
+	}
+	if (list_empty(&priv->tx_queue))
+		/* Nothing in list, should not happen */
+		return;
+	b = list_first_entry(&priv->tx_queue, struct bathos_bdescr, list);
+	pbuf = _setup_pbuf(b, &free_now);
 	ieee80211_output_pbuf(netif, pbuf);
 	pbuf_free(pbuf);
-end:
 	list_del_init(&b->list);
-	bathos_bqueue_server_buf_processed(b);
+	if (free_now)
+		bathos_bqueue_server_buf_processed(b);
 }
 
 /*
@@ -242,20 +324,21 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 	struct esp8266_wlan_priv *priv;
 	struct bathos_dev *dev = pipe->dev;
 	const struct esp8266_wlan_platform_data *plat = dev->platform_data;
-	int ret;
+	int ret, i;
 
 	if (!pipe_mode_is_async(pipe))
 		return -EINVAL;
-
 	priv = &_priv;
 	if (priv->plat) {
 		printf("JUST ONE OPEN INSTANCE ALLOWED FOR THIS DRIVER\n");
 		return -ENOMEM;
 	}
-	
 	priv->plat = plat;
 	INIT_LIST_HEAD(&priv->rx_queue);
 	INIT_LIST_HEAD(&priv->tx_queue);
+	INIT_LIST_HEAD(&free_custom_pbufs);
+	for (i = 0; i < MAX_CUSTOM_PBUFS; i++)
+		list_add_tail(&custom_pbufs[i].list, &free_custom_pbufs);
 	priv->buffer_area = _buffer_area;
 	pipe->dev_data = bathos_dev_init(dev, &esp8266_wlan_ll_dev_ops, priv);
 	if (!pipe->dev_data) {
