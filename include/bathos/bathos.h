@@ -18,7 +18,7 @@
 /* Ever-needed definitions */
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
-#define ALIGN(a,b) (((a) + ((b) - 1)) & ((b) - 1))
+#define ALIGN(a,b) (((a) + ((b) - 1)) & (~((b) - 1)))
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #endif
