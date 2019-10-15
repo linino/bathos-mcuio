@@ -364,7 +364,7 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 						     * Two "empty" buffers
 						     * for tx
 						     */
-						    2,
+						    16,
 						    0,
 						    REMOTE_MAC,
 						    OUT);
