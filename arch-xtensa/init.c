@@ -47,14 +47,81 @@ void events_notify(void)
 	system_os_post(0, 0, 0);
 }
 
+/* http://cholla.mmto.org/esp8266/xtensa.html */
+/* FIXME: HAVE A LOOK HERE : */
+/* https://backend.cesanta.com/blog/esp8266-gdb.shtml */
+struct exception_frame
+{
+	uint32_t epc;
+	uint32_t ps;
+	uint32_t sar;
+	uint32_t unused;
+	union {
+		struct {
+			uint32_t a0;
+			uint32_t a2;
+			uint32_t a3;
+			uint32_t a4;
+			uint32_t a5;
+			uint32_t a6;
+			uint32_t a7;
+			uint32_t a8;
+			uint32_t a9;
+			uint32_t a10;
+			uint32_t a11;
+			uint32_t a12;
+			uint32_t a13;
+			uint32_t a14;
+			uint32_t a15;
+		};
+		uint32_t a_reg[15];
+	};
+	uint32_t cause;
+};
+
+
+extern void
+_xtos_set_exception_handler(int,
+			    void (*ptr)(struct exception_frame *ef,
+					uint32_t cause));
+extern int ets_printf(const char *fmt, ...);
+
+static void my_eh(struct exception_frame *ef, uint32_t cause)
+{
+	uint32_t *p, *sp;
+
+	ets_printf("# exception %u\n", cause);
+	ets_printf("# pc = %08x\n", ef->epc);
+	/* Call return address */
+	ets_printf("# a0 = %08x\n", ef->a0);
+	/* Stack pointer */
+	sp = (uint32_t *)((unsigned int)ef - 256);
+	ets_printf("# sp = %08x\n", sp);
+	/* Print out some stack */
+	for(p = sp; p < sp + 1024; p += 4) {
+		if((unsigned int)p >= 0x3fffffff)
+			break; /* End of ram */
+		ets_printf("# %p: %08x %08x %08x %08x\n",
+			   p, p[0], p[1], p[2], p[3]);
+	}
+	/* Panic */
+	while(1);
+}
+
 void user_init(void)
 {
 	int i;
+	static const int exceptions[] = {
+		6, 9, 28, 29,
+	};
 
 	console_early_init();
 	/* printf seems to start working after a while ! */
 	for (i = 0; i < 11500; i++)
 		console_putc('+');
+
+	for (i = 0; i < ARRAY_SIZE(exceptions); i++)
+		     _xtos_set_exception_handler(i, my_eh);
 	bathos_setup();
 	bathos_main();
 }
