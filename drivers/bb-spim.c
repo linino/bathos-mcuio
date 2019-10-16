@@ -405,7 +405,7 @@ static int _spim_init(struct bb_spim_priv *priv)
 	if (stat < 0) {
 		printf("%s: cannot setup clk gpio\n", __func__);
 		return stat;
-	}	
+	}
 	priv->clk_half_period_ns = (1000000000UL / 2) / (plat->clk_freq * 1000);
 #ifndef HAS_ARCH_NDELAY
 	if (priv->clk_half_period_ns < 1000) {
