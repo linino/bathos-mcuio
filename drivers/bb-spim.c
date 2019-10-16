@@ -555,6 +555,16 @@ error0:
 	return ret;
 }
 
+void bb_spim_slave_request(struct bathos_dev *dev)
+{
+	struct bb_spim_priv *priv = dev->ll_priv;
+
+	if (list_empty(&priv->queue))
+		return;
+
+	start_trans(priv);
+}
+
 static int bb_spim_close(struct bathos_pipe *pipe)
 {
 	struct bathos_bqueue *bq = bathos_dev_get_bqueue(pipe);

@@ -26,4 +26,7 @@ struct bb_spim_platform_data {
 
 extern const struct bathos_dev_ops PROGMEM bb_spim_dev_ops;
 
+/* Invoke this when the slave wants to start a transaction */
+extern void bb_spim_slave_request(struct bathos_dev *);
+
 #endif /* __ESP8266_SPIM_H__ */
