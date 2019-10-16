@@ -99,6 +99,18 @@ struct bathos_spi_buffer_op_address {
 	uint8_t cmd_bits;
 	/* Lenght of address phase in bits (max 32) */
 	uint8_t addr_bits;
+	/*
+	 * If this pointer is not NULL, the callback is invoked as soon
+	 * as an input transaction of the given number of bits has ended.
+	 * If the callback returns a non NULL pointer to an sglist
+	 * element, another input transaction is started
+	 * ASAP and the relevant data is written into the sglist element
+	 * itself. Otherwise the buffer is marked as processed and given
+	 * back to its user.,
+	 */
+	struct bathos_sglist_el *(*partial_input_trans_cb)
+		(const void *input_data, void *priv);
+	void *partial_input_trans_cb_priv;
 };
 
 struct bathos_buffer_op_address {
