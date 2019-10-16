@@ -90,7 +90,6 @@ struct bathos_spi_buffer_op_address {
 	/* Address */
 	uint32_t addr;
 	/* Flags */
-#define OVERLAPPED_TX_RX
 	uint32_t flags;
 	/* Length of mosi phase in bits */
 	uint16_t mosi_data_bits;
