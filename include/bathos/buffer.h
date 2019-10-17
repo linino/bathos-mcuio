@@ -55,6 +55,8 @@ struct bathos_bdescr {
 	struct list_head		list;
 	/* User's data pointer, this is untouched by the driver and the pipe */
 	void				*user_data;
+	/* Driver's data pointer, untouched by user and pipe */
+	void				*driver_data;
 };
 
 enum bathos_buffer_op_type {
