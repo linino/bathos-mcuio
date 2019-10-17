@@ -202,6 +202,7 @@ static void esp8266_wlan_setup_handler(struct event_handler_data *ed)
 		printf("%s: ERR, buffer is NULL\n", __func__);
 		return;
 	}
+	b->driver_data = NULL;
 	op = to_operation(b);
 	q = b->queue;
 	priv = bathos_bqueue_to_ll_priv(q);
@@ -243,47 +244,93 @@ declare_event_handler(esp8266_wlan_setup, NULL, esp8266_wlan_setup_handler,
 static void esp8266_wlan_done_handler(struct event_handler_data *ed)
 {
 	struct bathos_bdescr *b = ed->data;
+	struct bathos_buffer_op *op;
 
 	pr_debug("%s, buffer %p\n", __func__, b);
 	if (!b) {
 		printf("%s: ERR, buffer is NULL\n", __func__);
 		return;
 	}
+	op = to_operation(b);
+	if (op->type == RECV) {
+		if (b->driver_data) {
+			/* Zero copy recv, free relevant pbuf */
+			struct pbuf *p = b->driver_data;
+
+			pbuf_free(p);
+		} else
+			/* memcpy recv, free data area */
+			bathos_free_buffer(b->data, b->data_size);
+	}
 	bathos_bqueue_server_buf_done(b);
 }
 declare_event_handler(esp8266_wlan_done, NULL, esp8266_wlan_done_handler,
 		      NULL);
+
+static int _setup_rx_buf_copy(struct pbuf *p, struct bathos_bdescr *b,
+			      int total_length)
+{
+	struct pbuf *ptr;
+	int copied;
+
+	b->data = bathos_alloc_buffer(total_length);
+	if (!b->data)
+		return -ENOMEM;
+	b->driver_data = NULL;
+	for (ptr = p, copied = 0; ; ptr = ptr->next) {
+		memcpy(&((uint8_t *)b->data)[copied], ptr->payload, ptr->len);
+		pr_debug("%s: copied %d bytes\n", __func__, ptr->len);
+		copied += ptr->len;
+		if (ptr->tot_len == ptr->len)
+			break;
+	}
+	b->data_size = copied;
+	pbuf_free(p);
+	return copied;
+}
+
+static int _setup_rx_buf_zerocopy(struct pbuf *p, struct bathos_bdescr *b,
+				  int total_data_length)
+{
+	b->data = p->payload;
+	b->data_size = p->len;
+	b->driver_data = p;
+	/* We don't free p here, since we're holding a reference to it */
+	return b->data_size;
+}
 
 static void esp8266_input_packet_handler(struct event_handler_data *ed)
 {
 	struct esp8266_wlan_priv *priv = &_priv;
 	struct bathos_bdescr *b;
 	struct pbuf *p = ed->data, *ptr;
-	uint8_t buf[16];
-	int  i, copied, l;
+	int total_length, nfragments, stat;
 
 	pr_debug("%s, pbuf = %p\n", __func__, p);
 	if (list_empty(&priv->rx_queue)) {
 		printf("%s: empty rx queue, throwing away\n", __func__);
-		goto end;
+		pbuf_free(p);
+		return;
 	}
 	b = list_first_entry(&priv->rx_queue, struct bathos_bdescr, list);
-	if (!b->data) {
-		printf("%s: only supporting straight buffers\n", __func__);
-		goto end;
-	}
-	/* FIXME: CHECK HOW MUCH FREE SPACE IS IN THE BUFFER */
-	for (ptr = p, copied = 0; ; ptr = ptr->next) {
-		memcpy(&b->data[copied], ptr->payload, ptr->len);
-		copied += ptr->len;
+	/* Determine total length and number of fragments */
+	for (ptr = p, total_length = 0, nfragments = 1; ;
+	     ptr = ptr->next, nfragments++, total_length += ptr->len)
 		if (ptr->tot_len == ptr->len)
 			break;
+	stat = 0;
+	if (nfragments == 1) {
+		pr_debug("JUST ONE FRAGMENT, zerocopy\n");
+		stat = _setup_rx_buf_zerocopy(p, b, total_length);
 	}
-	b->data_size = copied;
+	if (stat < 0 || nfragments > 1) {
+		pr_debug("MORE THAN ONE FRAGMENT OR ZEROCOPY FAILED, memcpy\n");
+		stat = _setup_rx_buf_copy(p, b, total_length);
+	}
+	if (stat < 0)
+		b->error = stat;
 	list_del_init(&b->list);
 	bathos_bqueue_server_buf_processed(b);
-end:
-	pbuf_free(p);
 }
 declare_event_handler(esp8266_input_packet, NULL, esp8266_input_packet_handler,
 		      NULL);
