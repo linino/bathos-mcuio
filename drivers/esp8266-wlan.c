@@ -165,7 +165,7 @@ static void start_tx(struct esp8266_wlan_priv *priv)
 	struct netif *netif = (struct netif *)eagle_lwip_getif(0);
 	struct bathos_bdescr *b;
 	struct pbuf *pbuf = NULL;
-	int free_now;
+	int free_now, status;
 
 	if (!netif) {
 		printf("ERR: %s, could not get interface\n", __func__);
@@ -176,7 +176,8 @@ static void start_tx(struct esp8266_wlan_priv *priv)
 		return;
 	b = list_first_entry(&priv->tx_queue, struct bathos_bdescr, list);
 	pbuf = _setup_pbuf(b, &free_now);
-	ieee80211_output_pbuf(netif, pbuf);
+	status = ieee80211_output_pbuf(netif, pbuf);
+	pr_debug("ieee80211_output_pbuf() returns %d\n", status);
 	pbuf_free(pbuf);
 	list_del_init(&b->list);
 	if (free_now)
