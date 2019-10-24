@@ -67,7 +67,7 @@ export CC OBJDUMP OBJCOPY LD ARCH BUILD_DIR SRC_DIR SCRIPTS
 
 # host gcc
 HOSTCC ?= gcc
-HOST_CFLAGS ?= -I$(SRC_DIR)/include
+HOST_CFLAGS ?= -I$(SRC_DIR)/include -I$(BUILD_DIR)/include
 
 BOOT_OBJ ?= $(ADIR)/boot.o
 IO_OBJ ?= $(ADIR)/io.o
