@@ -20,7 +20,7 @@
 #include <user_interface.h>
 
 #define RAW_INPUT_TASK_PRIO 28
-#define QUEUE_LEN 4
+#define QUEUE_LEN 8
 
 #define MAX_CUSTOM_PBUFS 128
 
