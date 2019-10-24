@@ -51,7 +51,7 @@ struct bathos_bdescr *bathos_bqueue_get_buf_dir(struct bathos_bqueue *q,
 	interrupt_disable(flags);
 	if (list_empty(free_list)) {
 		interrupt_restore(flags);
-		printf("%s: no free bufs, dir = %d\n", __func__, dir);
+		pr_debug("%s: no free bufs, dir = %d\n", __func__, dir);
 		return NULL;
 	}
 	out = list_first_entry(free_list, struct bathos_bdescr, list);
