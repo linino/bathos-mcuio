@@ -405,21 +405,22 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 						    de,
 						    NULL,
 						    /*
-						     * Two "empty" buffers
+						     * 32 "empty" buffers
 						     * for tx
 						     */
 						    16,
 						    0,
-						    REMOTE_MAC,
+						    DONTCARE,
 						    OUT);
 		if (ret < 0)
 			goto error1;
 		ret = bathos_bqueue_server_init_dir(q,
 						    se,
 						    de,
-						    2,
-						    1514,
-						    REMOTE_MAC,
+						    NULL,
+						    16,
+						    0,
+						    DONTCARE,
 						    IN);
 	}
 	if (ret)
