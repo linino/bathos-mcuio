@@ -83,12 +83,15 @@ void bathos_bqueue_server_buf_done(struct bathos_bdescr *b)
 	switch (b->dir) {
 	case ANY:
 		free_list = &data->free_bufs;
+		pr_debug("%s: Buf %p back to free list\n", __func__, b);
 		break;
 	case OUT:
 		free_list = &data->free_bufs_tx;
+		pr_debug("%s: Buf %p back to tx free list\n", __func__, b);
 		break;
 	case IN:
 		free_list = &data->free_bufs_rx;
+		pr_debug("%s: Buf %p back to rx free list\n", __func__, b);
 		break;
 	default:
 		printf("%s: buffer %p has invalid direction %d\n", __func__,
