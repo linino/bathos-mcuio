@@ -153,7 +153,7 @@ int esp8266_uart_hw_init(const struct esp8266_uart_platform_data *plat)
 {
 	uint32_t v;
 
-	esp8266_uart_set_baudrate(plat, 115200);
+	esp8266_uart_set_baudrate(plat, 230400);
 	if (plat->pin_setup)
 		plat->pin_setup(plat);
 	/* Reset FIFO */
