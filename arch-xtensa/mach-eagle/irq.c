@@ -42,7 +42,7 @@ static void __isr spi_isr(void *arg)
 
 #define GPIOIR (0x60000300 + 0x1c)
 
-static void gpio_isr(void *arg)
+static void __isr gpio_isr(void *arg)
 {
 	uint32_t istatus;
 
