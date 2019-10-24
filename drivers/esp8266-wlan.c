@@ -28,10 +28,7 @@ struct esp8266_wlan_priv {
 	const struct esp8266_wlan_platform_data *plat;
 	struct list_head rx_queue;
 	struct list_head tx_queue;
-	void *buffer_area;
 };
-
-static uint8_t _buffer_area[1514*2];
 
 /*
  * Can't have more than one open instance. Unfortunately an ets_task handler
@@ -386,7 +383,6 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 	INIT_LIST_HEAD(&free_custom_pbufs);
 	for (i = 0; i < MAX_CUSTOM_PBUFS; i++)
 		list_add_tail(&custom_pbufs[i].list, &free_custom_pbufs);
-	priv->buffer_area = _buffer_area;
 	pipe->dev_data = bathos_dev_init(dev, &esp8266_wlan_ll_dev_ops, priv);
 	if (!pipe->dev_data) {
 		ret = -ENOMEM;
@@ -420,7 +416,6 @@ static int esp8266_wlan_open(struct bathos_pipe *pipe)
 		ret = bathos_bqueue_server_init_dir(q,
 						    se,
 						    de,
-						    priv->buffer_area,
 						    2,
 						    1514,
 						    REMOTE_MAC,
